@@ -1,6 +1,6 @@
 import bridge from "@vkontakte/vk-bridge";
 
-import * as types from "./actionTypes";
+import * as types from "./types";
 import {VK_APP_CLOSE} from "../../../constants/Bridge";
 
 export const setActivePanel = (panelId) => {
@@ -11,9 +11,7 @@ export const setActivePanel = (panelId) => {
     if (activePanel === panelId) {
       return;
     }
-    console.log(window.history)
-    console.log(state.history)
-    console.log(activePanel, activeView)
+
     window.history.pushState({ panel: panelId, view:activeView }, panelId);
     dispatch({
       type: types.SET_ACTIVE_PANEL,
@@ -48,8 +46,6 @@ export const setPreviousPanel = () => {
     }
 
     const newHistory = history.slice(0, history.length - 1);
-
-
 
     return dispatch({ type: types.SET_PREVIOUS_PANEL, payload: newHistory });
   };

@@ -1,4 +1,4 @@
-import * as types from "./actionTypes";
+import * as types from "./types";
 
 import {ROOT_VIEW} from "../../../constants/View";
 import {FEED_PANEL} from "../../../constants/Panel";

@@ -16,17 +16,18 @@ const MainView = (props) => {
     const { id } = props;
     const dispatch = useDispatch();
     const { activePanel, history } = useSelector((state) => state.history);
+    const { popout } = useSelector((state)=>state.vk);
 
     return (
         <Epic activeStory={id} tabbar={
             <Tabbar>
                 <TabbarItem
-                    // selected={activePanel === 'HELLO_PANEL'}
+                    selected={activePanel === FEED_PANEL}
                     data-story="feed"
                     text="Главная"
                 ><Icon28NewsfeedOutline /></TabbarItem>
                 <TabbarItem
-                    // selected={activePanel === 'profile'}
+                    selected={activePanel === 'profile'}
                     data-story="profile"
                     text="Профиль"
                 ><Icon28UserCircleOutline /></TabbarItem>
@@ -36,6 +37,7 @@ const MainView = (props) => {
                 id={id}
                 history={history}
                 activePanel={activePanel}
+                popout={popout}
                 onSwipeBack={() => dispatch(setPreviousPanel())}
             >
                 <Feed id={FEED_PANEL} />

@@ -26,43 +26,43 @@ const App = () => {
     const {activeView} = useSelector((state) => state.history);
     const [colorScheme, setColorScheme] = useState(DEFAULT_COLOR_SCHEME);
 
-    const VKWebAppUpdateConfig = scheme => {
-        if (!isDark(scheme)) {
-            bridge.send('VKWebAppSetViewSettings', {
-                status_bar_style: 'light',
-                action_bar_color: '#8b44f7',
-            });
-        }
-
-        setColorScheme(scheme);
-
-        const schemeAttribute = document.createAttribute('scheme');
-        schemeAttribute.value = scheme;
-        document.body.attributes.setNamedItem(schemeAttribute);
-    };
+    // const VKWebAppUpdateConfig = scheme => {
+    //     if (!isDark(scheme)) {
+    //         bridge.send('VKWebAppSetViewSettings', {
+    //             status_bar_style: 'light',
+    //             action_bar_color: '#8b44f7',
+    //         });
+    //     }
+    //
+    //     setColorScheme(scheme);
+    //
+    //     const schemeAttribute = document.createAttribute('scheme');
+    //     schemeAttribute.value = scheme;
+    //     document.body.attributes.setNamedItem(schemeAttribute);
+    // };
     useEffect(() => {
         window.addEventListener("popstate", () => dispatch(setPreviousPanel()));
         dispatch(getUser());
     }, []);
 
-    useEffect(() => {
-        const vkEvents = bridge.subscribe(e => {
-            switch(e.detail.type) {
-                case 'VKWebAppUpdateConfig':
-                    // const scheme = get(e, 'detail.data.scheme', DEFAULT_COLOR_SCHEME);
-                    VKWebAppUpdateConfig(scheme);
-                    console.log(e);
-                    break;
-                default:
-                    console.log(e.detail.type, e.detail.data);
-                    break;
-            }
-        });
-
-        return () => {
-            bridge.unsubscribe(vkEvents);
-        };
-    }, []);
+    // useEffect(() => {
+    //     const vkEvents = bridge.subscribe(e => {
+    //         switch(e.detail.type) {
+    //             case 'VKWebAppUpdateConfig':
+    //                 // const scheme = get(e, 'detail.data.scheme', DEFAULT_COLOR_SCHEME);
+    //                 VKWebAppUpdateConfig(scheme);
+    //                 console.log(e);
+    //                 break;
+    //             default:
+    //                 console.log(e.detail.type, e.detail.data);
+    //                 break;
+    //         }
+    //     });
+    //
+    //     return () => {
+    //         bridge.unsubscribe(vkEvents);
+    //     };
+    // }, []);
 
     return (
         <ConfigProvider isWebView={true}>
