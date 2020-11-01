@@ -1,3 +1,4 @@
+const fs = require('fs');
 const path = require('path');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 
@@ -42,8 +43,11 @@ module.exports = (options) => ({
     historyApiFallback: true,
     disableHostCheck: true,
     compress: false,
-    host: 'localhost',
-    port: 80
+    host: '0.0.0.0',
+    https:true,
+    port: 10888,
+    cert: fs.readFileSync('fullchain.pem'),
+    key: fs.readFileSync('privkey.pem')
   },
   plugins: options.plugins.concat(
     [

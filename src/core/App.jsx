@@ -2,16 +2,15 @@ import React, {useEffect, useState} from "react";
 import {ConfigProvider, Root} from "@vkontakte/vkui";
 import {useDispatch, useSelector} from "react-redux";
 import {getUser} from "../state/reducers/vk/actions";
-import bridge from "@vkontakte/vk-bridge";
 import MainView from "../Views/Root";
 
-import {MAP_VIEW, ROOT_VIEW} from "../constants/View";
+import {POST_VIEW, ROOT_VIEW} from "../constants/View";
 
 import {setPreviousPanel} from "../state/reducers/history/actions";
 
 import "../styles/index.scss";
 import "@vkontakte/vkui/dist/vkui.css";
-import MapView from "../Views/Map";
+import PostView from "../Views/Post";
 
 const DARK_THEME_IDS = ['client_dark', 'space_gray'];
 const DEFAULT_COLOR_SCHEME = 'bright_light';
@@ -67,8 +66,9 @@ const App = () => {
     return (
         <ConfigProvider isWebView={true}>
             <Root id="APP" activeView={activeView}>
-                <MapView id={MAP_VIEW}/>
+                <PostView id={POST_VIEW}/>
                 <MainView id={ROOT_VIEW}/>
+
             </Root>
         </ConfigProvider>
     );

@@ -1,29 +1,40 @@
-import React, {useEffect, useState, } from "react";
-import {Panel, PanelHeader, PanelHeaderBack} from "@vkontakte/vkui";
+import React, {useEffect, useState} from "react";
+import {Panel, PanelHeader} from "@vkontakte/vkui";
 import PropTypes from "prop-types";
-import {handleToPreviousPanel} from "../../../core/HistoryDispatcher";
-import {useDispatch, useSelector} from "react-redux";
-import axios from 'axios';
+import {useDispatch, useSelector,} from "react-redux";
 import FeedSnippet from "../../../Components/FeedSnippet";
+import {getCenters} from "../../../state/reducers/content/actions";
+import {useLazyLoading} from "../../../Components/useLazyLoading";
+
+const OFFSET_DATA = 10;
 
 const Feed = (props) => {
     const { id } = props;
     const dispatch = useDispatch();
-    const [data, setData] = useState([]);
     const user = useSelector(state =>state.vk.user);
+    const centers = useSelector(state =>state.content.centers);
+    const [dataOffset, setOffset] = useState(0);
+
+    const appendItems = () =>{
+        setOffset(dataOffset+OFFSET_DATA);
+        dispatch(getCenters(user.city.title, window.location.search, OFFSET_DATA, dataOffset+OFFSET_DATA+1));
+    };
+
+    useLazyLoading({
+        onIntersection: appendItems,
+        delay: 1200,
+        marginFromBottom:20
+    });
 
     useEffect(()=>{
-        axios.get('http://192.168.1.64:3000/centers', { params: {
-                city:user.city.title,
-                limit:10
-            }
-        }).then(data=>setData(data.data))
+        dispatch(getCenters(user.city.title, window.location.search, OFFSET_DATA));
+        return ()=>console.log('mem not leaked')
     }, []);
 
     return (
         <Panel id={id}>
             <PanelHeader>Главная</PanelHeader>
-            {data.map((center, key)=><FeedSnippet key={key} center={center.data} likes={0} comments={0} />)}
+            {centers.map((center,key)=><FeedSnippet key={key} id={key} center={center}/>)}
         </Panel>
     );
 };

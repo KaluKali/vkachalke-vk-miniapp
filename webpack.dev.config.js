@@ -5,7 +5,7 @@ const CircularDependencyPlugin = require('circular-dependency-plugin');
 module.exports = require('./webpack.config')({
   mode: 'development',
   entry: {
-    main: './src/index.js'
+    main: './src/index.jsx'
   },
   output: {
     filename: '[name].js',
