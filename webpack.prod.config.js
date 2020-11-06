@@ -13,7 +13,7 @@ module.exports = require('./webpack.config')({
   },
   output: {
     filename: '[name].js',
-    chunkFilename: '[name].js'
+    chunkFilename: '[name].js',
   },
   optimization: {
     minimize: true,
@@ -43,11 +43,11 @@ module.exports = require('./webpack.config')({
         keepClosingSlash: true,
         minifyJS: true,
         minifyCSS: true,
-        minifyURLs: true
+        minifyURLs: true,
       },
       inject: true,
     }),
     new UnusedFilesWebpackPlugin(),
-    new BundleAnalyzerPlugin({ analyzerMode: 'static' })
+    new BundleAnalyzerPlugin({ analyzerMode: 'static' }),
   ],
 });

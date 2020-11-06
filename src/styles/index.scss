@@ -1,0 +1,7 @@
+.noPaddingBottom-Panel .Panel__in {
+  padding-bottom: 0;
+}
+
+.noPaddingBottom-Panel .Panel__in:after {
+  content: none;
+}

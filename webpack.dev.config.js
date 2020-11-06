@@ -5,11 +5,11 @@ const CircularDependencyPlugin = require('circular-dependency-plugin');
 module.exports = require('./webpack.config')({
   mode: 'development',
   entry: {
-    main: './src/index.jsx'
+    main: './src/index.jsx',
   },
   output: {
     filename: '[name].js',
-    chunkFilename: '[name].chunk.js'
+    chunkFilename: '[name].chunk.js',
   },
   plugins: [
     new webpack.HotModuleReplacementPlugin(), // Tell webpack we want hot reloading
@@ -18,11 +18,11 @@ module.exports = require('./webpack.config')({
       template: 'public/index.html',
       // favicon: 'public/favicon.ico'
     }),
-    new CircularDependencyPlugin()
+    new CircularDependencyPlugin(),
   ],
   devtool: 'eval-source-map',
 
   performance: {
-    hints: false
-  }
+    hints: false,
+  },
 });

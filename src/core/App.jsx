@@ -42,6 +42,7 @@ const App = () => {
     useEffect(() => {
         window.addEventListener("popstate", () => dispatch(setPreviousPanel()));
         dispatch(getUser());
+        return ()=> window.removeEventListener("popstate", () => dispatch(setPreviousPanel()));
     }, []);
 
     // useEffect(() => {
@@ -66,9 +67,8 @@ const App = () => {
     return (
         <ConfigProvider isWebView={true}>
             <Root id="APP" activeView={activeView}>
-                <PostView id={POST_VIEW}/>
                 <MainView id={ROOT_VIEW}/>
-
+                <PostView id={POST_VIEW}/>
             </Root>
         </ConfigProvider>
     );

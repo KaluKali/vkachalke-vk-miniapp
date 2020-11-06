@@ -2,6 +2,7 @@ import * as types from './types';
 
 const initialState = {
   popout:null,
+  modal:null,
   user: {
     first_name: 'Матвей',
     last_name: 'Правосудов',
@@ -24,6 +25,11 @@ const vkReducer = (state = initialState, action) => {
       return {
         ...state,
         popout: action.payload
+      };
+    case types.SET_MODAL_VIEW:
+      return {
+        ...state,
+        modal: action.payload
       };
     default:
       return state;

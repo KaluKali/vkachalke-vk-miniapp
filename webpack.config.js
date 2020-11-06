@@ -11,7 +11,7 @@ module.exports = (options) => ({
     path: path.resolve(__dirname, 'build'),
     filename: '[name].js',
     publicPath: process.env.NODE_ENV !== 'production' ? '/' : './',
-    chunkFilename: '[id].chunk.js'
+    chunkFilename: '[id].chunk.js',
   },
   module: {
     rules: [
@@ -19,23 +19,23 @@ module.exports = (options) => ({
         test: /\.(js|jsx)$/,
         exclude: /node_modules/,
         resolve: {
-          extensions: [".js", ".jsx"]
+          extensions: ['.js', '.jsx'],
         },
         use: {
-          loader: "babel-loader"
-        }
+          loader: 'babel-loader',
+        },
       },
       {
         test: /\.(jpg|png|gif)$/,
-        use: 'file-loader'
+        use: 'file-loader',
       },
       {
         test: /\.svg$/,
-        use: ["@svgr/webpack"],
+        use: ['@svgr/webpack'],
       },
       {
-        test: /\.css$/,
-        use: process.env.NODE_ENV === 'production' ? [MiniCssExtractPlugin.loader, 'css-loader'] : ['style-loader', 'css-loader']
+        test: /\.(s*)css$/,
+        use: process.env.NODE_ENV === 'production' ? [MiniCssExtractPlugin.loader, 'css-loader'] : ['style-loader', 'css-loader'],
       },
     ],
   },
@@ -44,10 +44,10 @@ module.exports = (options) => ({
     disableHostCheck: true,
     compress: false,
     host: '0.0.0.0',
-    https:true,
+    https: true,
     port: 10888,
     cert: fs.readFileSync('fullchain.pem'),
-    key: fs.readFileSync('privkey.pem')
+    key: fs.readFileSync('privkey.pem'),
   },
   plugins: options.plugins.concat(
     [
@@ -57,5 +57,5 @@ module.exports = (options) => ({
       }),
     ],
 
-  )
+  ),
 });

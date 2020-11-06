@@ -1,6 +1,5 @@
 import * as types from "./types";
 import bridge from "@vkontakte/vk-bridge";
-import axios from 'axios';
 
 /** User-info **/
 export const setVkUser = (user) => ({
@@ -14,4 +13,8 @@ export const getUser = () => dispatch =>
 export const setPopoutView = (popout) => ({
   type: types.SET_POPOUT_VIEW,
   payload: popout,
+});
+export const setModalView = (modal) => ({
+  type: types.SET_MODAL_VIEW,
+  payload: modal,
 });
