@@ -1,34 +1,43 @@
 import * as types from "./types";
 import axios from 'axios';
 
-
-export const setActiveCenters = (centers) => ({
-    type: types.SET_ACTIVE_CENTERS,
+/** Fetch centers **/
+export const manageCenters = (centers, event_type) => ({
+    type: event_type,
     payload: centers,
 });
-/** Fetch centers **/
-export const fetchCenters = (city, limit=10, offset=0) => dispatch =>
+export const appendCenters = (city, limit=10, offset=0, search='',category='') => dispatch =>
     axios.get('https://kalukali.pw:3000/centers', {params:{
             city:city,
             limit:limit,
             offset:offset,
+            search:search,
+            category:category,
             vk_start_params:window.location.search
         }
     })
-        .then(data=>dispatch(setActiveCenters(data.data)))
+        .then(data=>dispatch(manageCenters(data.data, types.APPEND_CENTERS)))
         .catch(err=>console.error(err));
-/** Post-request for comment centers **/
-export const manageComment = (payload, event_type) => ({
-    type: event_type,
-    payload: payload,
-});
+export const fetchCenters = (city, limit=10, offset=0, search='', category='') => dispatch => {
+    axios.get('https://kalukali.pw:3000/centers', {params:{
+            city:city,
+            limit:limit,
+            offset:offset,
+            search:search,
+            category:category,
+            vk_start_params:window.location.search
+        }
+    })
+        .then(({data})=>dispatch(manageCenters({data:data, category:category}, types.SET_CENTERS)))
+        .catch(err=>console.error(err));
+};
 export const fetchComments = (center, cb) => dispatch =>
     axios.get('https://kalukali.pw:3000/centers/comment', {params:{
             id:center.id
         }
     })
         .then(data=>{
-            dispatch(manageComment(data.data, types.SET_COMMENTS));
+            dispatch(manageCenters(data.data, types.SET_COMMENTS));
             if (cb) cb();
         })
         .catch(err=>console.log(err));
@@ -43,31 +52,28 @@ export const appendComment = (user, center, comment, type=0,stars=0) => dispatch
         type:type,
         stars:stars
     })
-        .then(data=>dispatch(manageComment({user,center,comment, id:data.data.id}, types.APPEND_COMMENT)))
+        .then(data=>dispatch(manageCenters({user,center,comment, id:data.data.id, type, stars}, types.APPEND_COMMENT)))
         .catch(err=>console.error(err));
 export const deleteComment = (comment) => dispatch =>
     axios.post('https://kalukali.pw:3000/centers/comment/delete',
         {
             post_id:comment.post_id,
             comment_id:comment.id,
+            type:comment.type,
             vk_start_params: window.location.search
         })
-        .then(()=>dispatch(manageComment(comment, types.DELETE_COMMENT)))
+        .then(()=>dispatch(manageCenters(comment, types.DELETE_COMMENT)))
         .catch(err=>console.log(err));
-/** Post-request for liking centers **/
-export const likeCenter = (key, event) => ({
-    type: types.LIKE_CENTER,
-    payload: {key:key, state:event},
-});
+/** Comments-request for liking centers **/
 export const postLiking = (id, key) => dispatch =>
     axios.post('https://kalukali.pw:3000/centers/like', {
         id:id,
         vk_start_params:window.location.search
     })
-        .then(data=>dispatch(likeCenter(key, data.data)))
+        .then(({data})=>dispatch(manageCenters({key:key, state:data}, types.LIKE_CENTER)))
         .catch(err=>console.error(err));
-/** For Post-panel **/
-export const setActivePost = (post) => ({
-    type: types.SET_ACTIVE_POST,
-    payload: post,
+/** For Comments-panel **/
+export const setCenterSaidParams = (params) => ({
+    type: types.SET_SAID_PARAMS,
+    payload: params,
 });

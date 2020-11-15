@@ -1,0 +1,1 @@
+export const MODAL_CARD_REVIEW = 'MODAL_CARD_REVIEW';

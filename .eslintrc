@@ -1,0 +1,14 @@
+{
+  "plugins": [
+    "react"
+  ],
+  "extends": ["eslint:all", "plugin:react/all", "airbnb/base", "airbnb/hooks"],
+  "rules": {
+    "react/jsx-curly-brace-presence": ["error", { "props": "never", "children": "never" }]
+  },
+  "parserOptions": {
+    "ecmaFeatures": {
+      "jsx": true
+    }
+  }
+}
