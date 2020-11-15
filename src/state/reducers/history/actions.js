@@ -3,19 +3,17 @@ import bridge from "@vkontakte/vk-bridge";
 import * as types from "./types";
 import {VK_APP_CLOSE} from "../../../constants/Bridge";
 
-export const setActivePanel = (panelId) => {
+export const setActivePanel = (panelId,needSave=true) => {
   return (dispatch, getState) => {
     const state = getState();
     const { activePanel, activeView } = state.history;
 
-    if (activePanel === panelId) {
-      return;
-    }
+    if (activePanel === panelId) return;
 
-    window.history.pushState({ panel: panelId, view:activeView }, panelId);
+    if (needSave) window.history.pushState({ panel: panelId, view:activeView }, panelId);
     dispatch({
       type: types.SET_ACTIVE_PANEL,
-      payload: { panelId: panelId, viewId: activeView },
+      payload: { panelId: panelId, viewId: activeView, needSave:needSave },
     });
   };
 };
@@ -50,3 +48,8 @@ export const setPreviousPanel = () => {
     return dispatch({ type: types.SET_PREVIOUS_PANEL, payload: newHistory });
   };
 };
+
+export const setHistorySaidParams = (params) => ({
+  type: types.SET_SAID_PARAMS,
+  payload: params,
+});

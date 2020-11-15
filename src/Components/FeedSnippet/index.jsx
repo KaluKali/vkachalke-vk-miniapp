@@ -12,6 +12,7 @@ import {
     IOS,
     List,
     RichCell,
+    ScreenSpinner,
     usePlatform
 } from "@vkontakte/vkui";
 import Icon20LikeOutline from "@vkontakte/icons/dist/20/like_outline";
@@ -35,6 +36,7 @@ import {
     setVkSaidParams
 } from "../../state/reducers/vk/actions";
 import Timetable from "../Timetable";
+import NakedImage from "../NakedImage";
 // todo transferal to react-table
 // todo problem with redraw, when dispatch(setPopoutView(null))
 const FeedSnippet = (props) => {
@@ -82,14 +84,7 @@ const FeedSnippet = (props) => {
                     {/** Image block **/}
                     {/** todo Чето сделать с referrer policy **/}
                     {center.image ?
-                        <div
-                            style={{
-                                backgroundPosition: 'center center',
-                                backgroundSize: 'contain',
-                                height:'140px',
-                                backgroundImage:`url(${center.image})`,
-                                backgroundRepeat: 'no-repeat',
-                            }}/>
+                        <NakedImage url={center.image} size={140} />
                         : null}
                 </List>
                 {/** Action block **/}
@@ -124,6 +119,7 @@ const FeedSnippet = (props) => {
                                                                 autoclose: true,
                                                                 mode: 'default',
                                                                 action: () =>{
+                                                                    dispatch(setVkSaidParams({popout:<ScreenSpinner />}))
                                                                     dispatch(abstractVkBridge('VKWebAppGetAuthToken',
                                                                         {
                                                                             app_id: 7636479,
@@ -150,6 +146,7 @@ const FeedSnippet = (props) => {
                                                                                                         ...photo_params
                                                                                                     }
                                                                                                 }, (photo_data)=>{
+                                                                                                    dispatch(setVkSaidParams({popout:null}))
                                                                                                     dispatch(appShowWallPostBox(center, `photo${photo_data.response[0].owner_id}_${photo_data.response[0].id}`))
                                                                                                 }))
                                                                                         }))

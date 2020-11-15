@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useRef, useState} from "react";
+import React, {useCallback, useRef} from "react";
 import {Button, Div, FixedLayout, Footer, HorizontalScroll, Panel, PanelHeader, Search, Spinner} from "@vkontakte/vkui";
 import PropTypes from "prop-types";
 import {useDispatch, useSelector,} from "react-redux";
@@ -6,7 +6,7 @@ import FeedSnippet from "../../../Components/FeedSnippet";
 import {appendCenters, fetchCenters} from "../../../state/reducers/content/actions";
 import InfiniteScroll from "react-infinite-scroll-component";
 import debounce from "lodash/debounce";
-import axios from 'axios';
+import {categories} from "../../../Components/renderUtils";
 
 const itemStyle = {
     flexShrink: 0,
@@ -16,7 +16,6 @@ const itemStyle = {
 };
 
 const Feed = (props) => {
-    console.log('Feed rerender')
     const { id } = props;
     const dispatch = useDispatch();
     const user = useSelector(state =>state.vk.user);
@@ -27,18 +26,8 @@ const Feed = (props) => {
     const activeCategory = useSelector(state=>state.content.activeCategory);
     const searchRef = useRef(null);
 
-    const [categories, setCategories] = useState([]);
-
-    useEffect(()=>{
-        axios.get('https://kalukali.pw:3000/centers/categories')
-            .then(({data})=>setCategories(data))
-    }, [setCategories]);
-
-     // useSelector(state=>console.log(state));
-    const appendItems = () => {
-        console.log('LazyLoad');
-        dispatch(appendCenters(user.city.title, 10, dataOffset+10,searchRef.current.value,activeCategory));
-    };
+    console.log('Feed rerender')
+    // useSelector(state=>console.log(state));
 
     const onChangeSearch = useCallback(
         debounce(() => {
@@ -73,7 +62,7 @@ const Feed = (props) => {
                         {categories.map((txt,key)=>(
                             <div key={key} style={itemStyle}>
                                 <Button mode={txt === activeCategory ? 'primary' : 'secondary'}
-                                onClick={()=>onClickCategory(txt)}
+                                        onClick={()=>onClickCategory(txt)}
                                 >{txt}</Button>
                             </div>
                         ))}
@@ -83,7 +72,7 @@ const Feed = (props) => {
             <InfiniteScroll
                 style={{paddingTop: 60, paddingBottom: 60}}
                 dataLength={centers.length}
-                next={appendItems}
+                next={()=>dispatch(appendCenters(user.city.title, 10, dataOffset+10,searchRef.current.value,activeCategory))}
                 hasMore={hasMore}
                 loader={<Spinner size="large"/>}
                 // вызывается когда hasMore = false

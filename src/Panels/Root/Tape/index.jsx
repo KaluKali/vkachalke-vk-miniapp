@@ -1,40 +1,21 @@
 import React, {useEffect, useState} from "react";
 import {Avatar, Button, Card, Div, Panel, PanelHeader, Placeholder, PullToRefresh, SimpleCell} from "@vkontakte/vkui";
 import PropTypes from "prop-types";
-import {useDispatch} from "react-redux";
+import {useDispatch, useSelector} from "react-redux";
 import Icon56InboxOutline from '@vkontakte/icons/dist/56/inbox_outline';
 import {setActivePanel} from "../../../state/reducers/history/actions";
 import {FIND_PANEL} from "../../../constants/Panel";
-import axios from "axios";
+import {fetchFeed} from "../../../state/reducers/content/actions";
 
-// const CommentBox = (props)=> {
-//     const { comments } = props;
-//     const [show, setMore] = useState(false)
-//
-//     return (
-//         {
-//             comments.length > 4 ?
-//
-//         }
-//     )
-// }
 
 const Tape = (props) => {
     const { id } = props;
     const dispatch = useDispatch();
     const [fetching, setFetching] = useState(false);
-    const [feed, setFeed] = useState([])
+    const feed = useSelector(state=>state.content.feed)
 
-    const fetchFeed = (cb) =>{
-        axios.get('https://kalukali.pw:3000/centers/feed', { params:{vk_start_params:window.location.search}
-        }).then(({data})=>{
-            console.log('fetch feed')
-            setFeed(data);
-            if (cb) cb();
-        })
-    }
     useEffect(()=>{
-        fetchFeed()
+        dispatch(fetchFeed())
     },[])
 
     return (
@@ -42,7 +23,7 @@ const Tape = (props) => {
             <PanelHeader>Лента</PanelHeader>
             <PullToRefresh isFetching={fetching} onRefresh={()=>{
                 setFetching(true);
-                fetchFeed(()=>setFetching(false))
+                dispatch(fetchFeed(()=>setFetching(false)))
             }}>
                 {feed.length
                     ? feed.map(post=>(

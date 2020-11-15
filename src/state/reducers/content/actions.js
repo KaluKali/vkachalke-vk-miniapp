@@ -77,3 +77,19 @@ export const setCenterSaidParams = (params) => ({
     type: types.SET_SAID_PARAMS,
     payload: params,
 });
+/** Edit center **/
+export const sendCenterChanges = (id, image, changes, cb) => dispatch =>(
+    axios.post('https://kalukali.pw:3000/centers/edit', {
+        id:id,
+        image:image,
+        changes:changes,
+        vk_start_params:window.location.search
+    }).then(()=>{if (cb) cb()})
+)
+export const fetchFeed = (cb) => dispatch =>(
+    axios.get('https://kalukali.pw:3000/centers/feed', { params:{vk_start_params:window.location.search}
+    }).then(({data})=>{
+        dispatch(setCenterSaidParams({feed:data}))
+        if (cb) cb();
+    })
+)

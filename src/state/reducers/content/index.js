@@ -10,6 +10,7 @@ const initialState = {
   centers:[],
   hasMore:true,
   activeCategory:'',
+  feed:[]
 };
 
 const contentReducer = (state = initialState, action) => {

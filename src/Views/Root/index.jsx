@@ -1,8 +1,8 @@
-import React from "react";
+import React, {useState} from "react";
 import {Epic, Tabbar, TabbarItem, View} from "@vkontakte/vkui";
 import {useDispatch, useSelector} from "react-redux";
 
-import {setActivePanel, setPreviousPanel} from "../../state/reducers/history/actions";
+import {setActivePanel, setHistorySaidParams, setPreviousPanel} from "../../state/reducers/history/actions";
 import {FIND_PANEL, PROFILE_PANEL, TAPE_PANEL} from "../../constants/Panel";
 import Feed from "../../Panels/Root/Feed";
 import Icon28UserCircleOutline from "@vkontakte/icons/dist/28/user_circle_outline";
@@ -16,24 +16,24 @@ const MainView = (props) => {
     const dispatch = useDispatch();
     const { activePanel, history } = useSelector((state) => state.history);
     const popout = useSelector(state=>state.vk.popout);
-
+    console.log(activePanel,history)
     return (
         <Epic activeStory={id} tabbar={
             <Tabbar>
                 <TabbarItem
                     selected={activePanel === FIND_PANEL}
                     text="Поиск"
-                    onClick={()=>dispatch(setActivePanel(FIND_PANEL))}
+                    onClick={()=>dispatch(setActivePanel(FIND_PANEL, false))}
                 ><Icon28NewsfeedOutline /></TabbarItem>
                 <TabbarItem
                     selected={activePanel === TAPE_PANEL}
                     text="Лента"
-                    onClick={()=>dispatch(setActivePanel(TAPE_PANEL))}
+                    onClick={()=>dispatch(setActivePanel(TAPE_PANEL, false))}
                 ><Icon24Newsfeed /></TabbarItem>
                 <TabbarItem
                     selected={activePanel === PROFILE_PANEL}
                     text="Профиль"
-                    onClick={()=>dispatch(setActivePanel(PROFILE_PANEL))}
+                    onClick={()=>dispatch(setActivePanel(PROFILE_PANEL, false))}
                 ><Icon28UserCircleOutline /></TabbarItem>
             </Tabbar>
         }>
@@ -42,7 +42,7 @@ const MainView = (props) => {
                 history={history}
                 activePanel={activePanel}
                 popout={popout}
-                onSwipeBack={() => dispatch(setPreviousPanel())}
+                onSwipeBack={()=>dispatch(setPreviousPanel())}
             >
                 <Feed id={FIND_PANEL} />
                 <Tape id={TAPE_PANEL} />
@@ -52,4 +52,4 @@ const MainView = (props) => {
     );
 };
 
-export default MainView;
+export default React.memo(MainView);

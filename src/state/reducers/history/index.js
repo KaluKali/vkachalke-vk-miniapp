@@ -11,11 +11,16 @@ const initialState = {
 
 const historyReducer = (state = initialState, action) => {
   switch (action.type) {
+    case types.SET_SAID_PARAMS:
+      return {
+        ...state,
+        ...action.payload
+      };
     case types.SET_ACTIVE_PANEL:
       return {
         ...state,
         activePanel: action.payload.panelId,
-        history: [...state.history, action.payload],
+        history: action.payload.needSave ? [...state.history, {panelId: action.payload.panelId, viewId: action.payload.viewId}] : state.history,
       };
 
     case types.SET_ACTIVE_VIEW: {

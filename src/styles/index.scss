@@ -9,14 +9,6 @@
 .noPaddingBottom-Panel .Panel__in:after {
   content: none;
 }
-/* хром, сафари */
-.withoutScroll::-webkit-scrollbar { width: 0; }
-
-/* ie 10+ */
-.withoutScroll { -ms-overflow-style: none; }
-
-/* (свойство больше не работает, других способов тоже нет) */
-.withoutScroll { overflow: -moz-scrollbars-none; }
 
 .withCircle {
   width: 50px;
