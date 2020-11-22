@@ -13,7 +13,7 @@
     "build": "cross-env NODE_ENV=production webpack --trace-deprecation --config webpack.prod.config.js && terser ./build/main.js -o ./build/main.js --comments false"
   },
   "dependencies": {
-    "@vkontakte/icons": "^1.54.0",
+    "@vkontakte/icons": "^1.55.0",
     "@vkontakte/vk-bridge": "^2.3.0",
     "@vkontakte/vkui": "^3.13.1",
     "axios": "^0.20.0",
@@ -31,7 +31,9 @@
     "react-dom": "^16.14.0",
     "react-infinite-scroll-component": "^5.1.0",
     "react-redux": "^7.2.2",
+    "react-select": "^3.1.0",
     "react-select-search": "^2.2.1",
+    "react-yandex-maps": "^4.5.0",
     "redux": "^4.0.5",
     "redux-thunk": "^2.3.0",
     "sass": "^1.29.0",
@@ -43,14 +45,14 @@
     "webpack-bundle-analyzer": "^3.9.0"
   },
   "devDependencies": {
-    "@babel/core": "^7.12.3",
-    "@babel/preset-env": "^7.12.1",
-    "@babel/preset-react": "^7.12.5",
-    "@svgr/webpack": "^5.4.0",
+    "@babel/core": "^7.12.7",
+    "@babel/preset-env": "^7.12.7",
+    "@babel/preset-react": "^7.12.7",
+    "@svgr/webpack": "^5.5.0",
     "babel-loader": "^8.2.1",
     "cross-env": "^7.0.2",
     "css-loader": "^4.3.0",
-    "eslint": "^7.13.0",
+    "eslint": "^7.14.0",
     "eslint-config-airbnb-base": "^14.2.1",
     "eslint-plugin-import": "^2.22.1",
     "eslint-plugin-react": "^7.21.5",

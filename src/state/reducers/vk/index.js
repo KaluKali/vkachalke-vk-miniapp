@@ -10,7 +10,7 @@ const initialState = {
     likes:0,
     changes:0,
     answers_and_questions:0,
-    city: '',
+    city: null,
   },
   user: {
     first_name: 'Тестовый',
@@ -33,17 +33,7 @@ const vkReducer = (state = initialState, action) => {
     case types.SET_SERVER_USER:
       return {
         ...state,
-        user_server: {...state.user_server, ...action.payload}
-      };
-    case types.SET_POPOUT_VIEW:
-      return {
-        ...state,
-        popout: action.payload
-      };
-    case types.SET_MODAL_VIEW:
-      return {
-        ...state,
-        modal: action.payload
+        user_server: action.payload.city ? {...state.user_server, ...action.payload} : {...state.user_server, ...{...action.payload, city:state.user.city.title}}
       };
     case types.SET_SAID_PARAMS:
       return {

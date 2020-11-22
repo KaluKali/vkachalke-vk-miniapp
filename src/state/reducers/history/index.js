@@ -1,12 +1,12 @@
 import * as types from "./types";
 
 import {ROOT_VIEW} from "../../../constants/View";
-import {FIND_PANEL} from "../../../constants/Panel";
+import {BOARD_PANEL} from "../../../constants/Panel";
 
 const initialState = {
   activeView: ROOT_VIEW,
-  activePanel: FIND_PANEL,
-  history: [{panelId: FIND_PANEL, viewId: ROOT_VIEW}],
+  activePanel: BOARD_PANEL,
+  history: [{panelId: BOARD_PANEL, viewId: ROOT_VIEW}],
 };
 
 const historyReducer = (state = initialState, action) => {

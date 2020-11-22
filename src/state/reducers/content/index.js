@@ -1,11 +1,8 @@
 import * as types from './types';
-import {Snackbar} from "@vkontakte/vkui";
-import {setVkSaidParams} from "../vk/actions";
-import Icon16DoneCircle from "@vkontakte/icons/dist/16/done_circle";
 
 const initialState = {
   active_post_index:0,
-  active_post_comments:{ content:[] },
+  active_post_comments:{ content:[], commented:-1 },
   item_offset:0,
   centers:[],
   hasMore:true,
@@ -47,7 +44,13 @@ const contentReducer = (state = initialState, action) => {
         active_post_comments: action.payload
       };
     case types.APPEND_COMMENT:
-      if (action.payload.type) state.centers[state.active_post_index].comments=parseInt(state.centers[state.active_post_index].comments)+1;
+      if (state.active_post_comments.commented !== -1) {
+        state.active_post_comments.content[state.active_post_comments.commented].text=action.payload.comment;
+        state.active_post_comments.content[state.active_post_comments.commented].stars=action.payload.stars;
+        return state
+      } else {
+        if (action.payload.type) state.centers[state.active_post_index].comments=parseInt(state.centers[state.active_post_index].comments)+1;
+      }
       return {
         ...state,
         active_post_comments: {
@@ -62,7 +65,8 @@ const contentReducer = (state = initialState, action) => {
               stars:action.payload.stars,
               type:action.payload.type,
               vk_user_id:action.payload.user.id
-            }]
+            }],
+          commented: state.active_post_comments.content.length
         }
       };
     case types.DELETE_COMMENT:
@@ -71,7 +75,8 @@ const contentReducer = (state = initialState, action) => {
         ...state,
         active_post_comments: {
           ...state.active_post_comments,
-          content: state.active_post_comments.content.filter(cmt=>cmt.id!==action.payload.id)
+          content: state.active_post_comments.content.filter(cmt=>cmt.id!==action.payload.id),
+          commented: -1
         }
       };
     default:

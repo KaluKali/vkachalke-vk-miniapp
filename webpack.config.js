@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
-
+process.traceDeprecation = true
 module.exports = (options) => ({
   target: 'web',
   devtool: options.devtool,

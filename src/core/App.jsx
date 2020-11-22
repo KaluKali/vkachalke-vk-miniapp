@@ -1,36 +1,37 @@
-import React, {lazy, useEffect} from 'react';
-import {ConfigProvider, Root, Snackbar, Avatar} from '@vkontakte/vkui';
+import React, {useEffect} from 'react';
+import {Appearance, ConfigProvider, Root, Snackbar} from '@vkontakte/vkui';
 import {useDispatch, useSelector} from 'react-redux';
-import {changeScheme, fetchServerUser, fetchVkUser, setVkSaidParams} from '../state/reducers/vk/actions';
+import {fetchServerUser, setVkSaidParams, setVkUser} from '../state/reducers/vk/actions';
 import MainView from '../Views/Root';
 
 import {EDITOR_VIEW, POST_VIEW, ROOT_VIEW} from '../constants/View';
 import Icon16DoneCircle from '@vkontakte/icons/dist/16/done_circle';
 import {setPreviousPanel} from '../state/reducers/history/actions';
 
-import '../styles/index.scss';
-import '@vkontakte/vkui/dist/vkui.css';
 import PostView from '../Views/Post';
-import {fetchCenters} from '../state/reducers/content/actions';
+import {fetchCenters, fetchFeed} from '../state/reducers/content/actions';
 import bridge from '@vkontakte/vk-bridge';
 import EditorView from "../Views/Editor";
+import * as types from "../state/reducers/vk/types";
 
 const App = () => {
     const dispatch = useDispatch();
     const {activeView} = useSelector((state) => state.history);
-    const user = useSelector(state =>state.vk.user);
     const colorScheme = useSelector(state=>state.vk.scheme);
 
     useEffect(() => {
-        dispatch(fetchVkUser());
-        dispatch(fetchServerUser());
+        bridge.send('VKWebAppGetUserInfo')
+            .then(data=>{
+                dispatch(setVkUser(data, types.SET_VK_USER))
+                dispatch(fetchServerUser((user_server)=>{
+                    dispatch(fetchCenters(user_server.city ? user_server.city : data.city.title));
+                    dispatch(fetchFeed());
+                }));
+            });
         window.addEventListener('popstate', () => dispatch(setPreviousPanel()));
         return ()=> window.removeEventListener('popstate', () => dispatch(setPreviousPanel()));
     }, []);
-    useEffect(()=>{
-        if (user.city.title) dispatch(fetchCenters(user.city.title));
-        return ()=>{};
-    }, [user]);
+
     useEffect(() => {
         const vkEvents = bridge.subscribe(e => {
             switch(e.detail.type) {
@@ -47,7 +48,9 @@ const App = () => {
                     }
                     break;
                 case 'VKWebAppUpdateConfig':
-                    dispatch(changeScheme(e.detail.data.scheme));
+                    if (!(e.detail.data.scheme==='bright_light' || e.detail.data.scheme==='client_light')) {
+                        dispatch(setVkSaidParams({scheme:'space_gray'}))
+                    }
                     console.log(e);
                     break;
                 default:
@@ -55,7 +58,6 @@ const App = () => {
                     break;
             }
         });
-
         return () => {
             bridge.unsubscribe(vkEvents);
         };
@@ -65,6 +67,8 @@ const App = () => {
         <ConfigProvider
             isWebView={bridge.isWebView()}
             scheme={colorScheme}
+            appearance={colorScheme === 'space_gray' ? Appearance.DARK : Appearance.LIGHT}
+            transitionMotionEnabled={false}
         >
             <Root id='APP' activeView={activeView}>
                 <MainView id={ROOT_VIEW}/>
@@ -75,4 +79,4 @@ const App = () => {
     );
 };
 
-export default App;
+export default React.memo(App);

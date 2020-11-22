@@ -1,13 +1,13 @@
 import * as types from "./types";
 import bridge from "@vkontakte/vk-bridge";
 import axios from 'axios';
+import {MAIN_SERVER_URL} from "../../../constants/Backend";
+
 
 export const changeScheme = ( scheme, needChange = false ) => dispatch =>{
     let isLight = ['bright_light', 'client_light'].includes( scheme );
 
-    if( needChange ) {
-        isLight = !isLight;
-    }
+    if( needChange ) isLight = !isLight;
 
     bridge.send('VKWebAppSetViewSettings', {
         'status_bar_style': isLight ? 'dark' : 'light',
@@ -24,21 +24,31 @@ export const fetchVkUser = () => dispatch =>
     bridge.send('VKWebAppGetUserInfo')
         .then(data=>dispatch(setVkUser(data, types.SET_VK_USER)));
 export const fetchServerUser = (cb) => dispatch =>
-    axios.get('https://kalukali.pw:3000/users/info', {params:{
+    axios.get(`${MAIN_SERVER_URL}/users/info`, {params:{
         vk_start_params:window.location.search
       }})
-        .then(data=>{
-            dispatch(setVkUser(data.data, types.SET_SERVER_USER));
-            if (cb) cb();
+        .then(({data})=>{
+            dispatch(setVkUser(data, types.SET_SERVER_USER));
+            if (cb) cb(data);
         });
+export const sendRequest = (type, params, cb) => dispatch =>{
+    axios.post(`${MAIN_SERVER_URL}/centers/requests`, {
+        type:type,
+        params:params,
+        vk_start_params:window.location.search
+    })
+    .then(({data})=>{
+        if (cb) cb(data)
+    });
+}
 /** For popout props **/
 export const setPopoutView = (popout) => ({
-  type: types.SET_POPOUT_VIEW,
-  payload: popout,
+  type: types.SET_SAID_PARAMS,
+  payload: {popout:popout},
 });
 export const setModalView = (modal) => ({
-  type: types.SET_MODAL_VIEW,
-  payload: modal,
+  type: types.SET_SAID_PARAMS,
+  payload: {modal:modal},
 });
 
 export const setVkSaidParams = (params) => ({
@@ -46,13 +56,12 @@ export const setVkSaidParams = (params) => ({
     payload: params,
 });
 /** VK USER **/
-export const abstractVkBridge = (method, params, cb) => dispatch => {
+export const abstractVkBridge = (method, params, cb) => {
     bridge.send(method, params).then(data=>cb ? cb(data) : null);
 };
-export const fetchPhoto = (center, access_token,upload_url, cb) => dispatch => {
-    axios.post('https://kalukali.pw:3000/centers/upload', {
-        image:center.image,
-        access_token:access_token,
+export const fetchPhoto = (image,upload_url, cb) => {
+    axios.post(`${MAIN_SERVER_URL}/centers/upload`, {
+        image:image,
         upload_url:upload_url,
         vk_start_params:window.location.search
     })
@@ -60,9 +69,22 @@ export const fetchPhoto = (center, access_token,upload_url, cb) => dispatch => {
             if (cb) cb(data)
         });
 };
-
-export const appShowWallPostBox = (center,photo) => dispatch =>{
-    bridge.send("VKWebAppShowWallPostBox", {
+export const sendUserChanges = (user) => {
+    axios.post(`${MAIN_SERVER_URL}/users/info`, {
+        user:user,
+        vk_start_params:window.location.search
+    })
+        .catch(err=>console.trace(err))
+}
+export const fetchCities = (input, cb, limit=10,offset=0) => {
+    axios.get(`${MAIN_SERVER_URL}/centers/cities`, {params:{
+            q:input,
+            limit:limit,
+            offset:offset
+        }}).then(({data})=> cb ? cb(data) : null)
+}
+export const appShowWallPostBox = (center,photo) =>{
+    bridge.send('VKWebAppShowWallPostBox', {
         message: `Я хожу в ${center.data.name}!`,
         attachments: [
             photo ? photo : ''

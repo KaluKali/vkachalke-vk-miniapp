@@ -5,6 +5,8 @@ import ReactDOM from "react-dom";
 import bridge from "@vkontakte/vk-bridge";
 import {Provider} from "react-redux";
 
+import './styles/index.scss';
+import '@vkontakte/vkui/dist/vkui.css';
 import App from "./core/App";
 import {VK_APP_INIT} from "./constants/Bridge";
 import store from "./state";
