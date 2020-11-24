@@ -1,12 +1,12 @@
 import React from "react";
 import Icon20CheckCircleFillGreen from "@vkontakte/icons/dist/20/check_circle_fill_green";
-import {Cell, Link} from "@vkontakte/vkui";
+import {Link, SimpleCell} from "@vkontakte/vkui";
 import Icon24Globe from "@vkontakte/icons/dist/24/globe";
 import Icon24LogoVk from "@vkontakte/icons/dist/24/logo_vk";
 import Icon24Phone from "@vkontakte/icons/dist/24/phone";
 import Icon24Place from '@vkontakte/icons/dist/24/place';
 import Icon28MoneySendOutline from "@vkontakte/icons/dist/28/money_send_outline";
-
+import Icon20BookOutline from '@vkontakte/icons/dist/20/book_outline';
 
 export function declension(number, one, two, five) {
     number %= 100;
@@ -50,19 +50,19 @@ export function socialInfoTypes(social, key, center) {
     const protoStr = protoString(center.data.info[social]);
     switch (social) {
         case 'vk':
-            return (<Cell key={key} before={socialIcons(social)}>
+            return (<SimpleCell key={key} before={socialIcons(social)}>
                 <Link href={protoStr.proto !==-1 ? center.data.info[social] : `https://${center.data.info[social]}`}
                       target={'_blank'} rel='noopener noreferrer'>{protoStr.replaced}</Link>
-            </Cell>);
+            </SimpleCell>);
         case 'number':
-            return (<Cell key={key} before={socialIcons(social)}>
+            return (<SimpleCell key={key} before={socialIcons(social)}>
                 <Link href={`tel:${center.data.info[social]}`}>{center.data.info[social]}</Link>
-            </Cell>);
+            </SimpleCell>);
         case 'site':
-            return (<Cell key={key} before={socialIcons(social)}>
+            return (<SimpleCell key={key} before={socialIcons(social)}>
                 <Link href={protoStr.proto !==-1 ? center.data.info[social] : `https://${center.data.info[social]}`}
                       target={'_blank'} rel='noopener noreferrer'>{protoStr.replaced}</Link>
-            </Cell>);
+            </SimpleCell>);
         // case 'instagram':
         //     return (<Cell key={key} before={socialIcons(social)}>
         //         <Link href={protoStr.proto !==-1 ? center.data.info[social] : `https://${center.data.info[social]}`}
@@ -121,7 +121,7 @@ export function socialIcons(field) {
         case 'address':
             return (<Icon24Place fill={'var(--text_link)'}/>);
         case 'index':
-            return (<div/>);
+            return (<Icon20BookOutline fill={'var(--text_link)'}/>);
         // case 'instagram':
         //     return (<Icon24LogoInstagram fill={'var(--text_link)'}/>);
         // case 'facebook':

@@ -1,10 +1,19 @@
 import React, {useRef, useState} from "react";
 import {
+    Button,
+    Div,
     Epic,
+    FormLayout,
     FormStatus,
+    Group,
     Input,
     ModalCard,
+    ModalPage,
+    ModalPageHeader,
     ModalRoot,
+    PanelHeaderButton,
+    Radio,
+    SelectMimicry,
     SimpleCell,
     Snackbar,
     Tabbar,
@@ -14,12 +23,20 @@ import {
 import {useDispatch, useSelector} from "react-redux";
 
 import {setActivePanel, setPreviousPanel} from "../../state/reducers/history/actions";
-import {BOARD_PANEL, CITY_SELECTION_PANEL, FIND_PANEL, PROFILE_PANEL, RATING_PANEL} from "../../constants/Panel";
+import {
+    BOARD_PANEL,
+    CITY_SELECTION_PANEL,
+    FIND_PANEL,
+    LIKED_CENTERS_PANEL,
+    PROFILE_PANEL,
+    RATING_PANEL,
+    REVIEWED_CENTERS_PANEL
+} from "../../constants/Panel";
 import Find from "../../Panels/Root/Find";
 import Icon28UserCircleOutline from "@vkontakte/icons/dist/28/user_circle_outline";
 import Profile from "../../Panels/Root/Profile";
 import Rating from "../../Panels/Root/Rating";
-import {MODAL_CARD_OWNER} from "../../constants/Modal";
+import {MODAL_CARD_OWNER, MODAL_FILTER, MODAL_FILTER_CATEGORIES} from "../../constants/Modal";
 import {sendRequest, setModalView, setVkSaidParams} from "../../state/reducers/vk/actions";
 import Icon16DoneCircle from "@vkontakte/icons/dist/16/done_circle";
 import Icon24Search from '@vkontakte/icons/dist/24/search';
@@ -27,22 +44,72 @@ import Icon24ServicesOutline from '@vkontakte/icons/dist/24/services_outline';
 import Board from "../../Panels/Root/Board";
 import CitySelection from "../../Panels/Root/Mimicry/CitySelection";
 import Icon24StatisticsOutline from '@vkontakte/icons/dist/24/statistics_outline';
+import {setCenterSaidParams} from "../../state/reducers/content/actions";
+import Icon24Done from "@vkontakte/icons/dist/24/done";
+import Likes from "../../Panels/Root/Profile/Likes";
+import Reviewed from "../../Panels/Root/Profile/Reviewed";
+import {categories} from "../../Components/renderUtils";
+import {ROOT_VIEW} from "../../constants/View";
 
 const MainView = (props) => {
     const { id } = props;
     const dispatch = useDispatch();
-    const { activePanel, history } = useSelector((state) => state.history);
+    const activePanel = useSelector((state) => state.history.activePanel);
+    const history = useSelector((state) => state.history.history.filter(h=>h.viewId===ROOT_VIEW).map(h=>h.panelId));
     const popout = useSelector(state=>state.vk.popout);
     const modal = useSelector((state)=>state.vk.modal);
     const groupInputRef = useRef(null);
     const [formError, setFormError] = useState(null);
+    const activeCategory = useSelector(state=>state.content.activeCategory);
+
+
+    const onClickCategory = (txt) => {
+        window.scrollTo(0,0);
+        dispatch(setCenterSaidParams({activeCategory:txt}))
+    };
 
     const modalPages = (
         <ModalRoot activeModal={modal} onClose={()=>dispatch(setModalView(null))}>
+            <ModalPage
+                id={MODAL_FILTER}
+                header={<ModalPageHeader
+                        right={<PanelHeaderButton onClick={()=>dispatch(setModalView(null))}>
+                            <Icon24Done />
+                        </PanelHeaderButton>}>Фильтры</ModalPageHeader>}
+            >
+                <FormLayout>
+                    <SelectMimicry top={'Категория'} placeholder={'Выбрать категорию'}
+                                   onClick={()=>dispatch(setModalView(MODAL_FILTER_CATEGORIES))}>
+                        {activeCategory}
+                    </SelectMimicry>
+                    <div style={{paddingBottom:10}} />
+                </FormLayout>
+            </ModalPage>
+            <ModalPage
+                id={MODAL_FILTER_CATEGORIES}
+                onClose={()=>dispatch(setModalView(MODAL_FILTER))}
+                header={<ModalPageHeader
+                    right={<PanelHeaderButton onClick={()=>dispatch(setModalView(MODAL_FILTER))}>
+                        <Icon24Done />
+                    </PanelHeaderButton>}>Выберите категорию</ModalPageHeader>}
+            >
+                <Group>
+                    <Div style={{display:'flex'}}>
+                        <Button onClick={()=>{
+                            if (activeCategory !== '') onClickCategory('')
+                            dispatch(setModalView(MODAL_FILTER))
+                        }} size={'l'} stretched mode={'destructive'}>Отчистить</Button>
+                    </Div>
+                    {categories.map((cat,key)=>(
+                        <Radio key={key} value={cat.label} checked={activeCategory===cat.label}
+                               onChange={(e)=>onClickCategory(e.target.value)}>{cat.label}</Radio>
+                    ))}
+                </Group>
+            </ModalPage>
             <ModalCard
                 id={MODAL_CARD_OWNER}
-                onClose={() => dispatch(setModalView(null))}
                 header="Подтверждение"
+                onClose={()=>dispatch(setModalView(null))}
                 actions={[
                     {
                         title: 'Отправить',
@@ -88,7 +155,7 @@ const MainView = (props) => {
                 <TabbarItem
                     selected={activePanel === BOARD_PANEL}
                     text="Главная"
-                    onClick={()=>dispatch(setActivePanel(BOARD_PANEL, false))}
+                    onClick={()=>dispatch(setActivePanel(BOARD_PANEL))}
                 ><Icon24ServicesOutline fill={activePanel === BOARD_PANEL ? 'var(--text_link)' : null}/>
                 </TabbarItem>
                 <TabbarItem
@@ -99,7 +166,7 @@ const MainView = (props) => {
                 <TabbarItem
                     selected={activePanel === RATING_PANEL}
                     text="Рейтинг"
-                    onClick={()=>dispatch(setActivePanel(RATING_PANEL, true))}
+                    onClick={()=>dispatch(setActivePanel(RATING_PANEL))}
                 ><Icon24StatisticsOutline fill={activePanel === RATING_PANEL ? 'var(--text_link)' : null}/></TabbarItem>
                 <TabbarItem
                     selected={activePanel === PROFILE_PANEL}
@@ -120,6 +187,8 @@ const MainView = (props) => {
                 <Find id={FIND_PANEL} />
                 <Rating id={RATING_PANEL} />
                 <Profile id={PROFILE_PANEL} />
+                <Likes id={LIKED_CENTERS_PANEL} />
+                <Reviewed id={REVIEWED_CENTERS_PANEL} />
                 <Board id={BOARD_PANEL} />
                 <CitySelection id={CITY_SELECTION_PANEL} />
             </View>

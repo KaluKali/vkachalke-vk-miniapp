@@ -1,5 +1,5 @@
 import React, {useState} from "react";
-import {Avatar, Cell, Counter, Group, Panel, PanelHeader, PullToRefresh, Title} from "@vkontakte/vkui";
+import {Avatar, Counter, Group, Panel, PanelHeader, PullToRefresh, SimpleCell, Title} from "@vkontakte/vkui";
 import PropTypes from "prop-types";
 import {useDispatch, useSelector} from "react-redux";
 import Icon24NarrativeActiveOutline from '@vkontakte/icons/dist/24/narrative_active_outline';
@@ -9,7 +9,7 @@ import Icon28PaletteOutline from '@vkontakte/icons/dist/28/palette_outline';
 import {changeScheme, fetchServerUser} from "../../../state/reducers/vk/actions";
 import Icon24Dropdown from '@vkontakte/icons/dist/24/dropdown';
 import {setActivePanel} from "../../../state/reducers/history/actions";
-import {CITY_SELECTION_PANEL} from "../../../constants/Panel";
+import {CITY_SELECTION_PANEL, LIKED_CENTERS_PANEL, REVIEWED_CENTERS_PANEL} from "../../../constants/Panel";
 
 
 const Profile = (props) => {
@@ -39,18 +39,20 @@ const Profile = (props) => {
                     </div>
                 </div>
                 <Group separator={'auto'}>
-                    <Cell
+                    <SimpleCell
+                        onClick={()=>dispatch(setActivePanel(LIKED_CENTERS_PANEL))}
                         before={<Icon24NarrativeActiveOutline fill={'var(--text_link)'}/>}
                         indicator={<Counter mode={user_server.likes ? 'primary' : 'secondary'}>{user_server.likes}</Counter>}
-                    >{`Отметок "понравилось"`}</Cell>
-                    <Cell
+                    >{`Отметок "понравилось"`}</SimpleCell>
+                    <SimpleCell
+                        onClick={()=>dispatch(setActivePanel(REVIEWED_CENTERS_PANEL))}
                         before={<Icon24Article fill={'var(--text_link)'}/>}
                         indicator={<Counter mode={user_server.reviews ? 'primary' : 'secondary'}>{user_server.reviews}</Counter>}
-                    >{`Отзывы`}</Cell>
-                    <Cell
+                    >{`Отзывы`}</SimpleCell>
+                    <SimpleCell
                         before={<Icon24WriteOutline fill={'var(--text_link)'}/>}
                         indicator={<Counter mode={user_server.changes ? 'primary' : 'secondary'}>{user_server.changes}</Counter>}
-                    >{`Изменения мест`}</Cell>
+                    >{`Изменения мест`}</SimpleCell>
 
                     {/*<Cell*/}
                     {/*    before={<Icon24Education fill={'var(--text_link)'}/>}*/}

@@ -1,13 +1,14 @@
-import React, {useCallback, useRef} from "react";
-import {Div, FixedLayout, Footer, Panel, PanelHeader, Search, Spinner} from "@vkontakte/vkui";
+import React, {useCallback, useEffect, useRef, useState} from "react";
+import {FixedLayout, Footer, Panel, PanelHeader, Search, Spinner} from "@vkontakte/vkui";
 import PropTypes from "prop-types";
 import {useDispatch, useSelector,} from "react-redux";
 import FeedSnippet from "../../../Components/FeedSnippet";
-import {appendCenters, fetchCenters} from "../../../state/reducers/content/actions";
+import {fetchCenters, setCenterSaidParams} from "../../../state/reducers/content/actions";
 import InfiniteScroll from "react-infinite-scroll-component";
 import debounce from "lodash/debounce";
-import {categories} from "../../../Components/renderUtils";
-import Select from 'react-select';
+import Icon24Filter from "@vkontakte/icons/dist/24/filter";
+import {setModalView} from "../../../state/reducers/vk/actions";
+import {MODAL_FILTER} from "../../../constants/Modal";
 
 
 const Find = (props) => {
@@ -15,99 +16,62 @@ const Find = (props) => {
     const dispatch = useDispatch();
     const user_city = useSelector(state =>state.vk.user_server.city);
     const snackbar = useSelector(state =>state.vk.snackbar);
-    const centers = useSelector(state =>state.content.centers);
-    const dataOffset = useSelector(state =>state.content.item_offset);
-    const hasMore = useSelector(state=>state.content.hasMore);
+    // const centers = useSelector(state =>state.content.centers);
+    // const dataOffset = useSelector(state =>state.content.item_offset);
+    // const hasMore = useSelector(state=>state.content.hasMore);
+    const filterSearch = useSelector(state=>state.content.filter_search);
     const activeCategory = useSelector(state=>state.content.activeCategory);
     const searchRef = useRef(null);
+
+
+    const [dataOffset, setDataOffset] = useState(0)
+    const [hasMore, setHasMore] = useState(true)
+    const [centers, setCenters] = useState([])
+
+    useEffect(()=>{
+        fetchCenters(user_city,10,0,filterSearch,activeCategory, ({data})=>{
+            setCenters(data)
+            !data.length && setHasMore(false)
+        })
+    }, [filterSearch,activeCategory])
 
     const onChangeSearch = useCallback(
         debounce(() => {
             if (searchRef) {
                 if (searchRef.current.value !== '') {
-                    // console.log('Find field work');
                     window.scrollTo(0,0);
-                    dispatch(fetchCenters(user_city,10,0,searchRef.current.value,activeCategory))
+                    dispatch(setCenterSaidParams({filter_search:searchRef.current.value}))
                 } else {
                     window.scrollTo(0,0);
-                    dispatch(fetchCenters(user_city,10,0,'',activeCategory))
+                    dispatch(setCenterSaidParams({filter_search:''}))
                 }
             }
-        }, 1600), [user_city,searchRef]
+        }, 1600), [user_city,activeCategory]
     );
-
-    const onClickCategory = (txt) => {
-        window.scrollTo(0,0);
-        if (txt !== activeCategory) {
-            dispatch(fetchCenters(user_city,10,0,searchRef.current.value,txt))
-        } else {
-            dispatch(fetchCenters(user_city,10,0,searchRef.current.value,''))
-        }
-    };
 
     return (
         <Panel id={id}>
-            <PanelHeader separator={false}><Search placeholder={'Название заведения'} onChange={onChangeSearch} getRef={searchRef}/></PanelHeader>
+            <PanelHeader separator={false}>Поиск</PanelHeader>
             <FixedLayout filled vertical="top">
-                <Div>
-                    <Select
-                        value={activeCategory === '' ? null : {value:activeCategory, label:activeCategory}}
-                        className="basic-single"
-                        classNamePrefix="select"
-                        name="categories"
-                        isClearable
-                        isSearchable
-                        onChange={(category, action)=>{
-                            switch (action.action) {
-                                case 'clear':
-                                    onClickCategory('')
-                                    break;
-                                case 'select-option':
-                                    onClickCategory(category.value)
-                                    break;
-                            }
-                        }}
-                        options={categories}
-                        placeholder={'Категория'}
-                        styles={{
-                            control: styles => ({
-                                ...styles,
-                                borderWidth: 0
-                            }),
-                            input: styles => ({
-                                ...styles,
-                                color:'var(--text_primary)'
-                            }),
-                            singleValue: styles => ({
-                                ...styles,
-                                color:'var(--text_primary)'
-                            }),
-                            placeholder: styles => ({
-                                ...styles,
-                                color:'var(--header_search_field_tint)'
-                            }),
-                        }}
-                        theme={(theme)=>({
-                            ...theme,
-                            borderRadius: 10,
-                            colors:{
-                                ...theme.colors,
-                                neutral0:'var(--header_search_field_background)',
-                                primary:'var(--accent)',
-                                primary25:'var(--header_search_field_background)',
-                                primary50:'var(--accent)',
-                            }
-                        })}
-                    />
-                </Div>
+                <Search placeholder={'Название заведения'} maxLength={50} onChange={onChangeSearch} getRef={searchRef}
+                        defaultValue={filterSearch}
+                        icon={<Icon24Filter />}
+                        onIconClick={()=>dispatch(setModalView(MODAL_FILTER))}
+                />
             </FixedLayout>
             <InfiniteScroll
                 style={{paddingTop: 70, paddingBottom: 60}}
                 dataLength={centers.length}
                 scrollThreshold={0.9}
-                next={()=>dispatch(appendCenters(user_city, 10, dataOffset+10,searchRef.current.value,activeCategory))}
+                next={()=> {
+                    fetchCenters(user_city,10,dataOffset + 10,filterSearch,activeCategory, ({data})=>{
+                        setCenters(centers.concat(data))
+                        setDataOffset(dataOffset+10)
+                        !data.length && setHasMore(false)
+                    })
+                }}
                 hasMore={hasMore}
-                loader={<Spinner size="large"/>}
+                loader={<Spinner />}
                 // вызывается когда hasMore = false
                 endMessage={<Footer>Записей о заведениях в городе больше нет</Footer>}
             >

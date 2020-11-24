@@ -4,7 +4,6 @@ import {
     ActionSheetItem,
     Avatar,
     Button,
-    Cell,
     Div,
     Footer,
     Gallery,
@@ -20,6 +19,7 @@ import {
     PullToRefresh,
     RichCell,
     ScreenSpinner,
+    SimpleCell,
     Snackbar,
     Text,
     Title,
@@ -52,23 +52,26 @@ import {CENTER_EDIT_PANEL, MAPVIEW_PANEL} from "../../../constants/Panel";
 import {EDITOR_VIEW, POST_VIEW} from "../../../constants/View";
 import Icon24List from "@vkontakte/icons/dist/24/list";
 import HideMore from "../../../Components/HideMore";
+import PostActionsBottom from "../../../Components/PostActionsBottom";
 
 
-const Post = (props) => {
+const Comment = (props) => {
     const { id } = props;
     const dispatch = useDispatch();
     const platform = usePlatform();
     const scheme = useSelector(state =>state.vk.scheme);
-    const center = useSelector(state =>state.content.centers[state.content.active_post_index]);
+    const center = useSelector(state =>state.content.center);
     const postCommentState = useSelector(state=>state.content.active_post_comments);
     const user = useSelector(state =>state.vk.user);
     const snackbar = useSelector(state =>state.vk.snackbar);
     // const commentInputRef = useRef(null);
     const [fetching, setFetching] = useState(false);
 
+
     useEffect(()=>{
         dispatch(fetchComments(center));
     }, []);
+
     const commentCell = (cmt, key) => {
         return (
             <RichCell
@@ -146,30 +149,33 @@ const Post = (props) => {
                             ><label style={{textAlign:'center'}}>Вы можете добавить их в панели редактирования</label></Button>}
                         />}
                     {/** Content block **/}
-                    <List>
-                        <Cell multiline before={<Icon24Place fill={'var(--text_link'}/>}
-                              onClick={()=>{
-                                  dispatch(setActiveView({panelId:MAPVIEW_PANEL,viewId:POST_VIEW}))
-                                  dispatch(setPopoutView(<ScreenSpinner />))
-                              }}
-                        >
-                            {`${center.data.info.address}${center.data.info.index ? `, ${center.data.info.index}` : ''}`}
-                        </Cell>
-                        {/** Timetable icon **/}
-                        {center.data.hours.length ?
-                            <HideMore icon={<Icon24Recent fill={'var(--text_link'}/>} text={'Расписание'}>
-                                <Timetable hours={center.data.hours}/>
-                            </HideMore>
-                            : null}
-                        {/** Other content **/}
-                        {Object.keys(center.data.info).map((info,key)=>socialInfoTypes(info, key, center))}
-                    </List>
-                    {/** Details icon **/}
-                    {center.data.capabilities.length ?
-                        <Cell before={<Icon24List fill={'var(--text_link'}/>}
-                              onClick={()=>dispatch(setModalView(MODAL_DETAILS))}
-                        >Подробнее</Cell> : null}
-                    {/** Stars-block **/}
+                    <Group separator={'hide'}>
+                        <List>
+                            <SimpleCell multiline before={<Icon24Place fill={'var(--text_link'}/>}
+                                  onClick={()=>{
+                                      dispatch(setActiveView({panelId:MAPVIEW_PANEL,viewId:POST_VIEW}))
+                                      dispatch(setPopoutView(<ScreenSpinner />))
+                                  }}
+                            >
+                                {`${center.data.info.address}${center.data.info.index ? `, ${center.data.info.index}` : ''}`}
+                            </SimpleCell>
+                            {/** Timetable icon **/}
+                            {center.data.hours.length ?
+                                <HideMore icon={<Icon24Recent fill={'var(--text_link'}/>} text={'Расписание'}>
+                                    <Timetable hours={center.data.hours}/>
+                                </HideMore>
+                                : null}
+                            {/** Other content **/}
+                            {Object.keys(center.data.info).map((info,key)=>socialInfoTypes(info, key, center))}
+                        </List>
+                        {/** Details icon **/}
+                        {center.data.capabilities.length ?
+                            <SimpleCell before={<Icon24List fill={'var(--text_link'}/>}
+                                  onClick={()=>dispatch(setModalView(MODAL_DETAILS))}
+                            >Подробнее</SimpleCell> : null}
+                        <PostActionsBottom center={center} />
+                    </Group>
+                    {/** Оценки пользователей **/}
                     <Group separator={'auto'} header={<Header>Оценки пользователей</Header>}>
                         <div style={{ display: 'flex', alignItems: 'center', flexDirection: 'column', marginTop:'20px' }}>
                             <Title weight={'semibold'} style={{fontSize:'32pt'}}>{center.stars.medium}</Title>
@@ -181,9 +187,9 @@ const Post = (props) => {
                         <List>
                             {
                                 center.stars.lines.map((star, key)=>(
-                                    <Cell key={key} before={<Text style={{marginRight:'12px', color:'#7b848f'}}>{key+1}</Text>}>
+                                    <SimpleCell key={key} before={<Text style={{marginRight:'12px', color:'#7b848f'}}>{key+1}</Text>}>
                                         <Line percent={star} strokeWidth="4" strokeColor={'#fbbd00'}/>
-                                    </Cell>
+                                    </SimpleCell>
                                 ))
                             }
                         </List>
@@ -233,8 +239,8 @@ const Post = (props) => {
     );
 };
 
-Post.propTypes = {
+Comment.propTypes = {
     id: PropTypes.string.isRequired,
 };
 
-export default Post;
+export default Comment;

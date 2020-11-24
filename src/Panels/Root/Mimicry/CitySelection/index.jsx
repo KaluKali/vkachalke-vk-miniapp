@@ -1,12 +1,11 @@
 import React, {useCallback, useRef, useState} from "react";
-import {Cell, Footer, Group, List, Panel, PanelHeader, PanelHeaderBack, Search, Spinner} from "@vkontakte/vkui";
+import {Footer, Group, List, Panel, PanelHeader, PanelHeaderBack, Search, SimpleCell, Spinner} from "@vkontakte/vkui";
 import PropTypes from "prop-types";
 import {handleToPreviousPanel} from "../../../../core/HistoryDispatcher";
 import {useDispatch} from "react-redux";
 import debounce from "lodash/debounce";
 import {fetchCities, sendUserChanges, setVkUser} from "../../../../state/reducers/vk/actions";
 import * as types from "../../../../state/reducers/vk/types";
-import {fetchCenters} from "../../../../state/reducers/content/actions";
 
 const CitySelection = (props) => {
     const { id } = props;
@@ -27,6 +26,8 @@ const CitySelection = (props) => {
                     window.scrollTo(0,0);
                 } else {
                     window.scrollTo(0,0);
+                    setLoadState(false)
+                    setCities([])
                 }
             }
         }, 1600), [searchRef]
@@ -45,14 +46,13 @@ const CitySelection = (props) => {
                     <List>
                         {!cities.length && searchRef.current ? <Footer>Ничего не найдено</Footer> : null}
                         {cities.map((city,key)=>(
-                            <Cell key={key}
+                            <SimpleCell key={key}
                                   onClick={()=>{
                                       sendUserChanges({city:city})
                                       dispatch(setVkUser({city:city}, types.SET_SERVER_USER))
-                                      dispatch(fetchCenters(city));
                                       handleToPreviousPanel(dispatch)
                                   }}
-                            >{city}</Cell>
+                            >{city}</SimpleCell>
                         ))}
                     </List>
                 }

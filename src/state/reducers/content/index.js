@@ -5,8 +5,10 @@ const initialState = {
   active_post_comments:{ content:[], commented:-1 },
   item_offset:0,
   centers:[],
+  center:{},
   hasMore:true,
   activeCategory:'',
+  filter_search:'',
   feed:[]
 };
 
@@ -22,6 +24,7 @@ const contentReducer = (state = initialState, action) => {
         ...state,
         centers: action.payload.data,
         activeCategory: action.payload.category,
+        filter_search: action.payload.filter_search,
         hasMore: action.payload.data.length > 0
       };
     case types.APPEND_CENTERS:
@@ -49,7 +52,7 @@ const contentReducer = (state = initialState, action) => {
         state.active_post_comments.content[state.active_post_comments.commented].stars=action.payload.stars;
         return state
       } else {
-        if (action.payload.type) state.centers[state.active_post_index].comments=parseInt(state.centers[state.active_post_index].comments)+1;
+        if (action.payload.type) state.center.comments=parseInt(state.center.comments)+1;
       }
       return {
         ...state,
@@ -70,7 +73,7 @@ const contentReducer = (state = initialState, action) => {
         }
       };
     case types.DELETE_COMMENT:
-      if (action.payload.type) state.centers[state.active_post_index].comments=parseInt(state.centers[state.active_post_index].comments)-1;
+      if (action.payload.type) state.center.comments=parseInt(state.center.comments)-1;
       return {
         ...state,
         active_post_comments: {

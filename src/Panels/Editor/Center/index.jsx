@@ -40,10 +40,9 @@ import Icon24Add from "@vkontakte/icons/dist/24/add";
 const Center = (props) => {
     const { id } = props;
     const dispatch = useDispatch();
-    const center = useSelector(state =>state.content.centers[state.content.active_post_index]);
+    const center = useSelector(state =>state.content.center);
     const snackbar = useSelector(state =>state.vk.snackbar);
     const scheme = useSelector(state =>state.vk.scheme);
-    const user = useSelector(state =>state.vk.user);
     const platform = usePlatform();
     const [images, setImages] = useState(center.image ?
         [null,null,null,null,null,null].map((img,key)=>center.image[key] ? center.image[key] : null) :
@@ -74,7 +73,7 @@ const Center = (props) => {
                         hours: values.hours,
                         capabilities:values.capabilities,
                         info: values.info.reduce((acc, [k, v]) => ({...acc, [k]: v}), {})
-                    },()=>dispatch(setVkSaidParams({
+                    },(response_text)=>dispatch(setVkSaidParams({
                         snackbar: (
                             <Snackbar
                                 duration={2000}
@@ -84,7 +83,7 @@ const Center = (props) => {
                                     dispatch(setActiveView({panelId: FIND_PANEL, viewId: ROOT_VIEW}))
                                 }}
                                 before={<Icon16DoneCircle fill={'var(--accent)'}/>}
-                            >{center.owner === user.id ? 'Изменения применены' : 'Запрос на исправление отправлен'}</Snackbar>
+                            >{response_text}</Snackbar>
                         )
                     }))))
 

@@ -14,8 +14,6 @@ const Rating = (props) => {
     const { id } = props;
     const dispatch = useDispatch();
     const user_city = useSelector(state =>state.vk.user_server.city);
-    const all_centers = useSelector(state =>state.content.centers);
-    const snackbar = useSelector(state =>state.vk.snackbar);
     const [dataOffset, setDataOffset] = useState(0)
     const [hasMore, setHasMore] = useState(true)
     const [centers, setCenters] = useState([])
@@ -40,7 +38,7 @@ const Rating = (props) => {
                     } else setHasMore(false)
                 })}
                 hasMore={hasMore}
-                loader={<Spinner size="large"/>}
+                loader={<Spinner />}
                 // вызывается когда hasMore = false
                 endMessage={<Footer>{`Не удалось найти заведения с отзывами для города ${user_city}`}</Footer>}
             >
@@ -50,20 +48,14 @@ const Rating = (props) => {
                         stars={Math.abs(center.stars.medium)}
                         actual={center.actual}
                         avatar={center.avatar}
+                        starSize={20}
                         caption={center.data.info.address}
                         onClick={()=>{
-                            let idx = all_centers.findIndex(cntr=>cntr.id===center.id)
-                            if (idx!==-1) {
-                                dispatch(setCenterSaidParams({ active_post_index:idx}));
-                                dispatch(setActiveView({ panelId:POST_PANEL, viewId:POST_VIEW }))
-                            } else {
-                                dispatch(setCenterSaidParams({ centers:all_centers.concat(center), active_post_index:all_centers.length }));
-                                dispatch(setActiveView({ panelId:POST_PANEL, viewId:POST_VIEW }))
-                            }
+                            dispatch(setCenterSaidParams({ center:center }));
+                            dispatch(setActiveView({ panelId:POST_PANEL, viewId:POST_VIEW }))
                         }}
                     >{center.data.name}</CenterHeader>)}
             </InfiniteScroll>
-            { snackbar ? snackbar : null }
         </Panel>
     );
 };

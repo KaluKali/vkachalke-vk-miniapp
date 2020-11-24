@@ -1,7 +1,7 @@
 import React from "react";
 import {Panel, PanelHeader, PanelHeaderBack} from "@vkontakte/vkui";
 import PropTypes from "prop-types";
-import {handleToPreviousPanel} from "../../core/HistoryDispatcher";
+import {handleToPreviousPanel} from "../../../src/core/HistoryDispatcher";
 import {useDispatch} from "react-redux";
 
 const Example = (props) => {

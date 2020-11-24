@@ -7,7 +7,19 @@ export const manageCenters = (centers, event_type) => ({
     type: event_type,
     payload: centers,
 });
-export const appendCenters = (city, limit=10, offset=0, search='',category='') => dispatch =>
+// export const appendCenters = (city, limit=10, offset=0, search='',category='') => dispatch =>
+//     axios.get(`${MAIN_SERVER_URL}/centers`, {params:{
+//             city:city,
+//             limit:limit,
+//             offset:offset,
+//             search:search,
+//             category:category,
+//             vk_start_params:window.location.search
+//         }
+//     })
+//         .then(data=>dispatch(manageCenters(data.data, types.APPEND_CENTERS)))
+//         .catch(err=>console.error(err));
+export const fetchCenters = (city, limit=10, offset=0, search='', category='', cb) => {
     axios.get(`${MAIN_SERVER_URL}/centers`, {params:{
             city:city,
             limit:limit,
@@ -17,20 +29,9 @@ export const appendCenters = (city, limit=10, offset=0, search='',category='') =
             vk_start_params:window.location.search
         }
     })
-        .then(data=>dispatch(manageCenters(data.data, types.APPEND_CENTERS)))
+        .then(cb)
         .catch(err=>console.error(err));
-export const fetchCenters = (city, limit=10, offset=0, search='', category='') => dispatch => {
-    axios.get(`${MAIN_SERVER_URL}/centers`, {params:{
-            city:city,
-            limit:limit,
-            offset:offset,
-            search:search,
-            category:category,
-            vk_start_params:window.location.search
-        }
-    })
-        .then(({data})=>dispatch(manageCenters({data:data, category:category}, types.SET_CENTERS)))
-        .catch(err=>console.error(err));
+    //({data})=>dispatch(manageCenters({data:data, category:category, filter_search:search}, types.SET_CENTERS))
 };
 /** Rating **/
 export const fetchRatingCenters = (city, limit=10, offset=0, cb) =>{
@@ -45,7 +46,20 @@ export const fetchRatingCenters = (city, limit=10, offset=0, cb) =>{
         .then(cb)
         .catch(err=>console.error(err));
 }
-/** **/
+/** Likes **/
+export const fetchLikedCenters = () =>
+    axios.get(`${MAIN_SERVER_URL}/users/liked`, {params:{
+        vk_start_params:window.location.search
+    }
+})
+    .catch(err=>console.error(err));
+/** Reviewed **/
+export const fetchReviewedCenters = () =>
+    axios.get(`${MAIN_SERVER_URL}/users/reviewed`, {params:{
+            vk_start_params:window.location.search
+        }
+    })
+        .catch(err=>console.error(err));
 export const fetchComments = (center, cb) => dispatch =>
     axios.get(`${MAIN_SERVER_URL}/centers/comment`, {params:{
             id:center.id,
@@ -64,7 +78,7 @@ export const appendComment = (user, center, comment, type=0,stars=0, works=null)
         l_n:user.last_name,
         ava:user.photo_100,
         txt:comment,
-        vk_s_p:window.location.search,
+        vk_start_params:window.location.search,
         type:type,
         stars:stars
     })
@@ -84,12 +98,11 @@ export const deleteComment = (comment) => dispatch =>
         .then(()=>dispatch(manageCenters(comment, types.DELETE_COMMENT)))
         .catch(err=>console.log(err));
 /** Comments-request for liking centers **/
-export const postLiking = (id, key) => dispatch =>
+export const postLiking = (id) =>
     axios.post(`${MAIN_SERVER_URL}/centers/like`, {
         id:id,
         vk_start_params:window.location.search
     })
-        .then(({data})=>dispatch(manageCenters({key:key, state:data}, types.LIKE_CENTER)))
         .catch(err=>console.error(err));
 /** For Comments-panel **/
 export const setCenterSaidParams = (params) => ({
@@ -103,7 +116,8 @@ export const sendCenterChanges = (id, images, changes,cb ) => dispatch =>(
         image:images,
         changes:changes,
         vk_start_params:window.location.search
-    }).then(cb)
+    }).then(({data})=>cb(data))
+        .catch(err=>cb(err.response.data))
 )
 export const fetchFeed = (cb) => dispatch =>(
     axios.get(`${MAIN_SERVER_URL}/centers/feed`, { params:{vk_start_params:window.location.search}})

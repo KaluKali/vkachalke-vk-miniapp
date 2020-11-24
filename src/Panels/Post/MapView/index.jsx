@@ -9,7 +9,7 @@ import {setPopoutView} from "../../../state/reducers/vk/actions";
 const MapView = (props) => {
     const { id } = props;
     const dispatch = useDispatch();
-    const center = useSelector(state =>state.content.centers[state.content.active_post_index]);
+    const center = useSelector(state =>state.content.center);
 
     return (
         <Panel id={id}>

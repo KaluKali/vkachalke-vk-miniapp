@@ -1,14 +1,15 @@
 import bridge from "@vkontakte/vk-bridge";
-
 import * as types from "./types";
-import {VK_APP_CLOSE} from "../../../constants/Bridge";
+import {BOARD_PANEL} from "../../../constants/Panel";
 
 export const setActivePanel = (panelId,needSave=true) => {
   return (dispatch, getState) => {
     const state = getState();
     const { activePanel, activeView } = state.history;
-
     if (activePanel === panelId) return;
+    if (activePanel === BOARD_PANEL) {
+      bridge.send('VKWebAppEnableSwipeBack');
+    }
 
     if (needSave) window.history.pushState({ panel: panelId, view:activeView }, panelId);
     dispatch({
@@ -40,10 +41,15 @@ export const setPreviousPanel = () => {
     const { history } = state.history;
 
     if (history.length === 1) {
-      return bridge.send(VK_APP_CLOSE, { status: "success" });
+      return bridge.send('VKWebAppClose', { status: "success" });
     }
 
     const newHistory = history.slice(0, history.length - 1);
+
+    const activePanel = history[history.length - 1];
+    if (activePanel === BOARD_PANEL) {
+      bridge.send('VKWebAppDisableSwipeBack');
+    }
 
     return dispatch({ type: types.SET_PREVIOUS_PANEL, payload: newHistory });
   };
