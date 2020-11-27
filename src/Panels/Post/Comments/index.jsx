@@ -139,7 +139,7 @@ const Comment = (props) => {
                             bullets={scheme === 'space_gray' ? 'light' : 'dark'}
                             onClick={()=>abstractVkBridge('VKWebAppShowImages', {images:center.image})}
                         >
-                            { center.image.map((img_url,key)=><NakedImage key={key} url={img_url} size={160} />) }
+                            { center.image.map((img_url,key)=><NakedImage key={key} url={img_url} size={180} />) }
                         </Gallery>
                         : <Placeholder
                             icon={<Icon56CameraOffOutline />}

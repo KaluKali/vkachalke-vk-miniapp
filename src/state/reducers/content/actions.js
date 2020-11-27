@@ -74,13 +74,10 @@ export const fetchComments = (center, cb) => dispatch =>
 export const appendComment = (user, center, comment, type=0,stars=0, works=null) => dispatch =>
     axios.post(`${MAIN_SERVER_URL}/centers/comment/insert`, {
         id:center.id,
-        f_n:user.first_name,
-        l_n:user.last_name,
-        ava:user.photo_100,
         txt:comment,
-        vk_start_params:window.location.search,
         type:type,
-        stars:stars
+        stars:stars,
+        vk_start_params:window.location.search,
     })
         .then(data=>{
             dispatch(manageCenters({user,center,comment, id:data.data.id, type, stars}, types.APPEND_COMMENT))

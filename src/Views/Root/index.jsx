@@ -101,8 +101,8 @@ const MainView = (props) => {
                         }} size={'l'} stretched mode={'destructive'}>Отчистить</Button>
                     </Div>
                     {categories.map((cat,key)=>(
-                        <Radio key={key} value={cat.label} checked={activeCategory===cat.label}
-                               onChange={(e)=>onClickCategory(e.target.value)}>{cat.label}</Radio>
+                        <Radio key={key} value={cat} checked={activeCategory===cat}
+                               onChange={(e)=>onClickCategory(e.target.value)}>{cat}</Radio>
                     ))}
                 </Group>
             </ModalPage>

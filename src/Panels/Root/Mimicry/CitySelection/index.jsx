@@ -37,7 +37,7 @@ const CitySelection = (props) => {
     return (
         <Panel id={id}>
             <PanelHeader left={<PanelHeaderBack onClick={() => handleToPreviousPanel(dispatch)} />}>Выбор города</PanelHeader>
-            <Search placeholder={'Начните вводить текст'} onChange={()=>{
+            <Search placeholder={'Начните вводить текст'} maxLength={50} onChange={()=>{
                 setLoadState(true)
                 onChangeSearch()
             }} getRef={searchRef}/>

@@ -16,9 +16,6 @@ const Find = (props) => {
     const dispatch = useDispatch();
     const user_city = useSelector(state =>state.vk.user_server.city);
     const snackbar = useSelector(state =>state.vk.snackbar);
-    // const centers = useSelector(state =>state.content.centers);
-    // const dataOffset = useSelector(state =>state.content.item_offset);
-    // const hasMore = useSelector(state=>state.content.hasMore);
     const filterSearch = useSelector(state=>state.content.filter_search);
     const activeCategory = useSelector(state=>state.content.activeCategory);
     const searchRef = useRef(null);
@@ -33,7 +30,7 @@ const Find = (props) => {
             setCenters(data)
             !data.length && setHasMore(false)
         })
-    }, [filterSearch,activeCategory])
+    }, [user_city,filterSearch,activeCategory])
 
     const onChangeSearch = useCallback(
         debounce(() => {

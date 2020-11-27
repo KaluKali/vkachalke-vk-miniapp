@@ -40,7 +40,7 @@ const Board = (props) => {
                         mode="image"
                         size="m"
                         asideMode={'expand'}
-                        header={<span>Вы владелец бизнесса?</span>}
+                        header={<span>Вы владелец бизнеса?</span>}
                         subheader="Добавьте профиль заведения в каталог"
                         background={<div style={{backgroundImage: 'linear-gradient(152deg, rgba(34,195,150,0.9) 0%, rgba(192,253,45,0.9) 100%)'}}/>}
                     /></Link>

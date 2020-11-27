@@ -1,7 +1,7 @@
-import React, {Fragment, useEffect, useState} from "react";
+import React, {Fragment, useEffect, useRef, useState} from "react";
 import {
     Avatar,
-    FormStatus,
+    FormStatus, Input,
     List,
     ModalCard,
     ModalPage,
@@ -10,7 +10,7 @@ import {
     PanelHeaderButton,
     RichCell,
     Separator,
-    SimpleCell,
+    SimpleCell, Snackbar,
     Textarea,
     View
 } from "@vkontakte/vkui";
@@ -20,14 +20,15 @@ import {setPreviousPanel} from "../../state/reducers/history/actions";
 import Comment from "../../Panels/Post/Comments";
 import {MAPVIEW_PANEL, POST_PANEL} from "../../constants/Panel";
 import Stars from "../../Components/Stars";
-import {MODAL_CARD_REVIEW, MODAL_DETAILS} from "../../constants/Modal";
-import {setModalView} from "../../state/reducers/vk/actions";
+import {MODAL_CARD_OWNER, MODAL_CARD_REVIEW, MODAL_DETAILS} from "../../constants/Modal";
+import {sendRequest, setModalView, setVkSaidParams} from "../../state/reducers/vk/actions";
 import {appendComment} from "../../state/reducers/content/actions";
 import MapView from "../../Panels/Post/MapView";
 import Icon24Dismiss from "@vkontakte/icons/dist/24/dismiss";
 import HideMore from "../../Components/HideMore";
 import {capabilitiesIcons} from "../../Components/renderUtils";
 import {POST_VIEW} from "../../constants/View";
+import Icon16DoneCircle from "@vkontakte/icons/dist/16/done_circle";
 
 const PostView = (props) => {
     const { id } = props;
@@ -38,17 +39,19 @@ const PostView = (props) => {
     const activePanel = useSelector((state) => state.history.activePanel);
     const history = useSelector((state) => state.history.history.filter(h=>h.viewId===POST_VIEW).map(h=>h.panelId));
     const center = useSelector(state=>state.content.center);
-    const postCommentsState = useSelector(state=>state.content.active_post_comments)
-
+    const comment_state = useSelector(state=>state.content.active_post_comments)
+    const groupInputRef = useRef(null);
     const [commentInputValue, setCommentInputValue] = useState('')
 
     const [stars, setStars] = useState(0);
 
     useEffect(()=>{
-        if (postCommentsState.commented !== -1) {
-            setStars(postCommentsState.content[postCommentsState.commented].stars)
+        if (comment_state.commented !== -1) {
+            setStars(comment_state.content[comment_state.commented].stars)
+            setCommentInputValue(comment_state.content[comment_state.commented].text)
         }
-    }, [postCommentsState])
+    }, [comment_state])
+
 
     const [formError, setFormError] = useState(null);
 
@@ -119,7 +122,6 @@ const PostView = (props) => {
                         size={24} onReview={setStars} style={{marginBottom:'5px'}}/>}
                 >{`${user.first_name} ${user.last_name}`}</RichCell>
                 <Textarea
-                    defaultValue={postCommentsState.commented !== -1 ? postCommentsState.content[postCommentsState.commented].text : ''}
                     value={commentInputValue} onChange={(e)=>{
                         if (e.target.value.length > 300) {
                             setFormError(
@@ -130,6 +132,46 @@ const PostView = (props) => {
                             setCommentInputValue(e.target.value.substring(0, 299))
                         } else setCommentInputValue(e.target.value)
                 }} placeholder={'Расскажите о заведении'} onFocus={() => formError && setFormError(null)}/>
+            </ModalCard>
+            <ModalCard
+                id={MODAL_CARD_OWNER}
+                header="Подтверждение"
+                onClose={()=>dispatch(setModalView(null))}
+                actions={[
+                    {
+                        title: 'Отправить',
+                        mode: 'commerce',
+                        action: ()=>{
+                            if (groupInputRef.current.value) {
+                                dispatch(setVkSaidParams({modal:null}))
+                                dispatch(sendRequest(1, {vk_group:groupInputRef.current.value}))
+                                dispatch(setVkSaidParams({snackbar: (
+                                        <Snackbar
+                                            duration={2000}
+                                            layout="vertical"
+                                            onClose={() =>dispatch(setVkSaidParams({snackbar: null}))}
+                                            before={<Icon16DoneCircle fill={'var(--accent)'} />}
+                                        >Ваша заявка отправлена</Snackbar>
+                                    )}))
+                            } else {
+                                setFormError(
+                                    <FormStatus header="Некорректное заполнение формы" mode="error">
+                                        Укажите ссылку на группу
+                                    </FormStatus>
+                                )
+                            }
+                        }
+                    }
+                ]}
+            >
+                {formError ? formError : null}
+                <SimpleCell
+                    disabled
+                    multiline
+                    description={<Input type={'url'} getRef={groupInputRef} placeholder={'Ссылка на группу'} onFocus={() => formError && setFormError(null)}/>}
+                >
+                    Для получения статуса владельца заведения вам нужно указать группу сообщества и быть в блоке контактов, чтобы нам было легче опознать вас.
+                </SimpleCell>
             </ModalCard>
         </ModalRoot>
     );

@@ -61,6 +61,29 @@ const Center = (props) => {
     return (
         <Panel id={id}>
             <PanelHeader left={<PanelHeaderBack onClick={() => handleToPreviousPanel(dispatch)} />}>Редактор</PanelHeader>
+            <Gallery
+                slideWidth="90%"
+                align={'center'}
+                style={{ height: '180px' }}
+                bullets={scheme === 'space_gray' ? 'light' : 'dark'}
+            >
+                {
+                    images.map((image,key)=>
+                        image ?
+                            <NakedImage key={key} url={image} size={180}>
+                                <Icon24DismissOverlay style={{order: 999,marginLeft:'auto'}} onClick={()=>setImages(images.map((img,k)=>k===key ? null : img))} />
+                            </NakedImage> :
+                            <div key={key} style={{display:'flex', alignItems:'center', justifyContent:'center'}}>
+                                <File accept="image/*" controlSize="m" mode={'outline'}
+                                      style={{border: "0.5px solid var(--accent)", borderRadius: "10px",
+                                          height:'99%', width:'70%', display:'flex', alignItems:'center', justifyContent:'center', alignSelf:'center'}}
+                                      onChange={(e)=>onImageInputChange(e,key)}>
+                                    <Icon24Gallery />
+                                </File>
+                            </div>
+                    )
+                }
+            </Gallery>
             <Formik
                 initialValues={{
                     hours:center.data.hours,
@@ -90,32 +113,6 @@ const Center = (props) => {
                 }}
             >{({ values }) => (
                 <Form>
-                    <Group mode={'auto'} header={<Header mode="secondary">Картинки</Header>}>
-                        <Gallery
-                            slideWidth="90%"
-                            align={'center'}
-                            style={{ height: '180px' }}
-                            bullets={scheme === 'space_gray' ? 'light' : 'dark'}
-                        >
-                            {
-                                images.map((image,key)=>
-                                    image ?
-                                        <NakedImage key={key} url={image} size={180}>
-                                            <Icon24DismissOverlay style={{order: 999,marginLeft:'auto'}} onClick={()=>setImages(images.map((img,k)=>k===key ? null : img))} />
-                                        </NakedImage> :
-                                        <div key={key} style={{display:'flex', alignItems:'center', justifyContent:'center'}}>
-                                            <File accept="image/*" controlSize="m" mode={'outline'}
-                                                  style={{border: "0.5px solid var(--accent)", borderRadius: "10px",
-                                                      height:'99%', width:'70%', display:'flex', alignItems:'center', justifyContent:'center', alignSelf:'center'}}
-                                                  onChange={(e)=>onImageInputChange(e,key)}>
-                                                <Icon24Gallery />
-                                            </File>
-                                        </div>
-                                )
-                            }
-                        </Gallery>
-                    </Group>
-
                     <FieldArray name="info">
                         {({ remove, push }) => (
                             <Group mode={'auto'} header={<Header mode="secondary" aside={<Icon24Add onClick={()=>
