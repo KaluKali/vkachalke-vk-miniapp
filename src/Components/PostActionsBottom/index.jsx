@@ -53,7 +53,8 @@ const PostActionsBottom = (props) => {
             {/** Share **/}
             <Icon28ShareOutline fill={'var(--dynamic_gray)'} width={24} height={24} style={{alignSelf:'center', marginRight:'auto'}}
                                 onClick={()=>{
-                                    if (center.image) {
+                                    let images_filtered = center.image ? center.image.filter(img=>img) : null
+                                    if (images_filtered && images_filtered.length) {
                                         dispatch(setVkSaidParams({popout:(
                                                 <Alert
                                                     actionsLayout="horizontal"
@@ -67,10 +68,8 @@ const PostActionsBottom = (props) => {
                                                         mode: 'default',
                                                         action: () =>{
                                                             const err_fc=()=>dispatch(setVkSaidParams({popout:null}))
-
                                                             dispatch(setVkSaidParams({popout:<ScreenSpinner />}))
-                                                            abstractVkBridgePromise('VKWebAppGetAuthToken', {app_id: 7636479, scope: "photos"})
-                                                                .catch(err_fc)
+                                                            abstractVkBridgePromise('VKWebAppGetAuthToken', {app_id: 7636479, scope: "photos,wall"})
                                                                 .then(data=>{
                                                                     abstractVkBridgePromise('VKWebAppCallAPIMethod',
                                                                         {
@@ -81,10 +80,9 @@ const PostActionsBottom = (props) => {
                                                                                 access_token:data.access_token
                                                                             }
                                                                         })
-                                                                        .catch(err_fc)
                                                                         .then(upload_link=>{
-                                                                            fetchPhoto(center.image[0], upload_link.response,
-                                                                                (photo_params)=>{
+                                                                            fetchPhoto(images_filtered[0], upload_link.response)
+                                                                                .then(({data:photo_params})=>{
                                                                                     abstractVkBridgePromise('VKWebAppCallAPIMethod',
                                                                                         {
                                                                                             method:'photos.saveWallPhoto',
@@ -95,20 +93,19 @@ const PostActionsBottom = (props) => {
                                                                                                 ...photo_params
                                                                                             }
                                                                                         })
-                                                                                        .catch(err_fc)
                                                                                         .then((photo_data)=>{
                                                                                             dispatch(setPopoutView(null))
                                                                                             appShowWallPostBox(center, `photo${photo_data.response[0].owner_id}_${photo_data.response[0].id}`)
-                                                                                        })
-                                                                                })
-                                                                        })
-                                                                })
+                                                                                        },err_fc)
+                                                                                },err_fc)
+                                                                        },err_fc)
+                                                                },err_fc)
                                                         },
                                                     }]}
                                                     onClose={()=>dispatch(setPopoutView(null))}
                                                 >
-                                                    <h2>Получение прав на фотографии</h2>
-                                                    <p>Для загрузки фото-превью заведения нам нужно разрешение на фотографии, чтобы разместить их на вашу стену</p>
+                                                    <h2>Получение прав</h2>
+                                                    <p>Для размещения заведения нам нужно разрешение на фотографии и стену</p>
                                                 </Alert>
                                             )}))
                                     } else appShowWallPostBox(center)

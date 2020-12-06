@@ -25,7 +25,8 @@ import {useDispatch, useSelector} from "react-redux";
 
 import {setActivePanel, setPreviousPanel} from "../../state/reducers/history/actions";
 import {
-    BOARD_PANEL, CHANGED_CENTERS_PANEL,
+    BOARD_PANEL,
+    CHANGED_CENTERS_PANEL,
     CITY_SELECTION_PANEL,
     FIND_PANEL,
     LIKED_CENTERS_PANEL,

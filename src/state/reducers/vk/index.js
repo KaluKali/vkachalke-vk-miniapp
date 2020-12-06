@@ -1,6 +1,7 @@
 import * as types from './types';
 
 const initialState = {
+  online:true,
   popout:null,
   modal:null,
   modalHistory:[null],
@@ -12,6 +13,7 @@ const initialState = {
     changes:0,
     answers_and_questions:0,
     city: null,
+    theme:null
   },
   user: {
     first_name: 'Тестовый',

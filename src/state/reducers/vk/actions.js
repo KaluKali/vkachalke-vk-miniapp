@@ -4,21 +4,35 @@ import axios from 'axios';
 import {MAIN_SERVER_URL} from "../../../constants/Backend";
 
 
-export const changeScheme = ( scheme, needChange = false ) => dispatch =>{
-    let isLight = ['bright_light', 'client_light'].includes( scheme );
-
-    if( needChange ) isLight = !isLight;
-
-    bridge.send('VKWebAppSetViewSettings', {
+export const changeSchemeOnBridge = (isLight) =>{
+    bridge.send('VKWebAppSetViewSettings',{
         'status_bar_style': isLight ? 'dark' : 'light',
-        'action_bar_color': isLight ? '#ffffff' : '#191919'
+        'action_bar_color': isLight ? '#ffffff' : '#191919',
+        'navigation_bar_color':isLight ? '#ffffff' : '#191919',
     });
-    dispatch(setVkSaidParams({scheme:isLight ? 'bright_light' : 'space_gray'}))
+}
+
+export const changeScheme = ( scheme, needChange = false ) => {
+    return (dispatch, getState) => {
+        const state = getState();
+        const { user_server } = state.vk;
+
+        let isLight = ['bright_light', 'client_light'].includes( scheme );
+
+        if( needChange ) isLight = !isLight;
+
+        changeSchemeOnBridge(isLight)
+
+        sendUserChanges({theme:isLight ? 0 : 1})
+            .then(()=>{
+                dispatch(setVkSaidParams({scheme:isLight ? 'bright_light' : 'space_gray', user_server:{...user_server, theme:isLight ? 0 : 1}}))
+            })
+    }
 };
 /** User-info **/
 export const setVkUser = (user, type) => ({
-  type: type,
-  payload: user,
+    type: type,
+    payload: user,
 });
 // export const fetchVkUser = () => dispatch =>
 //     bridge.send('VKWebAppGetUserInfo')
@@ -31,22 +45,22 @@ export const fetchServerSupports = (city) =>
         }})
 export const fetchServerUser = () =>
     axios.get(`${MAIN_SERVER_URL}/users/info`, {params:{
-        vk_start_params:window.location.search
-      }})
+            vk_start_params:window.location.search
+        }})
 export const sendRequest = (type, params, cb) => dispatch =>{
     axios.post(`${MAIN_SERVER_URL}/centers/requests`, {
         type:type,
         params:params,
         vk_start_params:window.location.search
     })
-    .then(({data})=>{
-        if (cb) cb(data)
-    });
+        .then(({data})=>{
+            if (cb) cb(data)
+        });
 }
 /** For popout props **/
 export const setPopoutView = (popout) => ({
-  type: types.SET_SAID_PARAMS,
-  payload: {popout:popout},
+    type: types.SET_SAID_PARAMS,
+    payload: {popout:popout},
 });
 export const setSnackBar = (snackbar) => ({
     type: types.SET_SAID_PARAMS,
@@ -63,7 +77,9 @@ export const setPreviousModal = () =>{
         else newHistory = [null]
 
         // console.log(modalHistory,newHistory)
-        window.history.pushState({ panel: state.history.panelId, view:state.history.activeView }, state.history.panelId)
+        let scroller = window.scrollY;
+        window.history.pushState({ panel: state.history.panelId, view:state.history.activeView,scrollHeight:scroller }, `${state.history.activeView}/${state.history.panelId}`)
+        // window.scrollTo(0,scroller)
         dispatch({
             type: types.SET_SAID_PARAMS,
             payload: {modal:newHistory[newHistory.length-1], modalHistory:newHistory},
@@ -93,21 +109,17 @@ export const abstractVkBridge = (method, params, cb) => {
         .catch(err=>cb(null,err));
 };
 export const abstractVkBridgePromise = (method, params) => bridge.send(method, params);
-export const fetchPhoto = (image,upload_url, cb) => {
+export const fetchPhoto = (image,upload_url) =>
     axios.post(`${MAIN_SERVER_URL}/centers/upload`, {
         image:image,
         upload_url:upload_url,
         vk_start_params:window.location.search
     })
-        .then(({data})=>{
-            if (cb) cb(data)
-        });
-};
 export const sendUserChanges = (user) =>
     axios.post(`${MAIN_SERVER_URL}/users/info`, {
         user:user,
         vk_start_params:window.location.search
-})
+    })
 export const fetchCities = (input, cb, limit=10,offset=0) => {
     axios.get(`${MAIN_SERVER_URL}/centers/cities`, {params:{
             q:input,
@@ -119,9 +131,7 @@ export const fetchCities = (input, cb, limit=10,offset=0) => {
 export const appShowWallPostBox = (center,photo) =>{
     bridge.send('VKWebAppShowWallPostBox', {
         message: `Я хожу в ${center.data.name}!`,
-        attachments: [
-            photo ? photo : ''
-        ],
+        attachments: photo ? [photo] : [],
         lat: center.data.map.lat,
         long: center.data.map.lng
     })

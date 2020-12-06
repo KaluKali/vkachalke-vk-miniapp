@@ -4,7 +4,7 @@ import PropTypes from "prop-types";
 import {handleToPreviousPanel} from "../../../../core/HistoryDispatcher";
 import {useDispatch} from "react-redux";
 import debounce from "../../../../Components/debounce";
-import {fetchCities, sendUserChanges, setVkSaidParams} from "../../../../state/reducers/vk/actions";
+import {fetchCities, sendUserChanges} from "../../../../state/reducers/vk/actions";
 import {SET_SERVER_USER} from "../../../../state/reducers/vk/types";
 
 const CitySelection = (props) => {

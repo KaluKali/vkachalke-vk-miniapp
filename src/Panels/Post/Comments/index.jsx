@@ -45,7 +45,7 @@ import {
 } from '../../../state/reducers/vk/actions';
 import {Line} from 'rc-progress';
 import Stars from "../../../Components/Stars";
-import {MODAL_CARD_REVIEW, MODAL_DETAILS, MODAL_SELECT_IMAGES} from "../../../constants/Modal";
+import {MODAL_CARD_REVIEW, MODAL_DETAILS} from "../../../constants/Modal";
 import Timetable from "../../../Components/Timetable";
 import NakedImage from "../../../Components/NakedImage";
 import Icon16DoneCircle from "@vkontakte/icons/dist/16/done_circle";

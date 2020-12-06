@@ -1,4 +1,4 @@
-import React, {useEffect, Suspense} from 'react';
+import React, {useEffect, useState} from 'react';
 import {
     Alert,
     Appearance,
@@ -8,11 +8,10 @@ import {
     PopoutWrapper,
     Root,
     Scheme,
-    Snackbar,
-    Spinner
+    Snackbar
 } from '@vkontakte/vkui';
 import {useDispatch, useSelector} from 'react-redux';
-import {fetchServerUser, setPopoutView, setVkSaidParams} from '../state/reducers/vk/actions';
+import {changeSchemeOnBridge, setPopoutView, setVkSaidParams} from '../state/reducers/vk/actions';
 import MainView from '../Views/Root';
 import Icon56WifiOutline from '@vkontakte/icons/dist/56/wifi_outline';
 import {EDITOR_VIEW, POST_VIEW, ROOT_VIEW} from '../constants/View';
@@ -31,8 +30,12 @@ const App = (props) => {
     const dispatch = useDispatch();
     const {activeView} = useSelector((state) => state.history);
     const colorScheme = useSelector(state=>state.vk.scheme);
+    const user_server = useSelector(state=>state.vk.user_server)
+    const [popout, setPopout] = useState(null)
 
     useEffect(() => {
+        history.scrollRestoration = 'manual';
+        window.history.scrollRestoration = 'manual';
         dispatch(setVkSaidParams(user_object))
         bridge.send('VKWebAppInit')
         if (!user_object.user_server.isCitySupport) {
@@ -56,12 +59,12 @@ const App = (props) => {
                     <p>Хотите сменить его?</p>
                 </Alert>))
         }
-
         const online = ()=>{
-            dispatch(setPopoutView(null))
+            setPopout(null)
         }
         const offline = ()=> {
-            dispatch(setPopoutView(
+            // dispatch(setVkSaidParams({online:false}))
+            setPopout(
                 <PopoutWrapper alignY={'center'} alignX={'center'}>
                     <Div style={{
                         background: 'var(--background_content)',
@@ -73,19 +76,26 @@ const App = (props) => {
                         <Placeholder
                             icon={<Icon56WifiOutline fill={'var(--accent)'}/>}
                             header={'Вы оффлайн'}
-                        >Подключитесь к интернету чтобы продолжить работу</Placeholder>
+                        >Подключитесь к интернету, чтобы продолжить работу</Placeholder>
                     </Div>
                 </PopoutWrapper>
-            ))
+            )
         }
-        const popstate = () => {
-            if (window.navigator.onLine) dispatch(setPreviousPanel())
-        }
+        // const noScrollOnce = (event) => {
+        //     document.removeEventListener('scroll', noScrollOnce);
+        // }
+        window.addEventListener('popstate', ()=>{
+            if (window.navigator.onLine) dispatch(setPreviousPanel());
+            document.addEventListener('scroll', (e)=>{
+                e.preventDefault();
+                e.stopPropagation();
+                e.stopImmediatePropagation();
+                window.scrollTo(0,window.history.state.scrollHeight)
+            }, {once:true});
+        })
         window.addEventListener('online', online)
         window.addEventListener('offline', offline)
-        window.addEventListener('popstate', popstate);
         return ()=>{
-            window.removeEventListener('popstate', popstate)
             window.removeEventListener('online', online)
             window.removeEventListener('offline', offline)
         };
@@ -107,13 +117,23 @@ const App = (props) => {
                     }
                     break;
                 case 'VKWebAppUpdateConfig':
-                    console.log(e);
-                    if (e.detail.data.scheme===Scheme.SPACE_GRAY) {
-                        dispatch(setVkSaidParams({scheme:Scheme.SPACE_GRAY}))
-                        bridge.send('VKWebAppSetViewSettings', {
-                            'status_bar_style': 'light',
-                            'action_bar_color': '#191919'
-                        });
+                    // если на сервере есть объект темы - он приоритетнее
+                    if (user_server.theme===null) {
+                        if (e.detail.data.scheme===Scheme.SPACE_GRAY) {
+                            dispatch(setVkSaidParams({scheme:Scheme.SPACE_GRAY}))
+                            changeSchemeOnBridge(false)
+                        } else {
+                            dispatch(setVkSaidParams({scheme:Scheme.BRIGHT_LIGHT}))
+                            changeSchemeOnBridge(true)
+                        }
+                    } else {
+                        if (user_server.theme===1) {
+                            dispatch(setVkSaidParams({scheme:Scheme.SPACE_GRAY}))
+                            changeSchemeOnBridge(false)
+                        } else {
+                            dispatch(setVkSaidParams({scheme:Scheme.BRIGHT_LIGHT}))
+                            changeSchemeOnBridge(true)
+                        }
                     }
                     break;
                 default:
@@ -125,7 +145,7 @@ const App = (props) => {
         return () => {
             bridge.unsubscribe(vkEvents);
         };
-    }, []);
+    }, [user_server]);
     return (
         <ConfigProvider
             // isWebView={true}
@@ -133,7 +153,7 @@ const App = (props) => {
             appearance={colorScheme === Scheme.SPACE_GRAY ? Appearance.DARK : Appearance.LIGHT}
             transitionMotionEnabled={false}
         >
-            <Root id='APP' activeView={activeView}>
+            <Root id='APP' activeView={activeView} popout={popout}>
                 <MainView id={ROOT_VIEW}/>
                 <PostView id={POST_VIEW}/>
                 <EditorView id={EDITOR_VIEW}/>

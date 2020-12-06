@@ -1,5 +1,5 @@
 import React from "react";
-import {Panel, PanelHeader, PanelHeaderBack, PanelHeaderContent} from "@vkontakte/vkui";
+import {Alert, Panel, PanelHeader, PanelHeaderBack, PanelHeaderContent} from "@vkontakte/vkui";
 import PropTypes from "prop-types";
 import {handleToPreviousPanel} from "../../../core/HistoryDispatcher";
 import {useDispatch, useSelector} from "react-redux";
@@ -28,7 +28,22 @@ const MapView = (props) => {
                     <Map
                         width={'100%'} height={'100%'}
                         defaultState={{ center: [center.data.map.lat, center.data.map.lng], zoom: 11 }}
-                        onLoad={() =>dispatch(setPopoutView(null))}
+                        onError={()=>
+                            dispatch(setPopoutView(
+                                <Alert
+                                    onClose={()=>handleToPreviousPanel(dispatch)}
+                                    actionsLayout='vertical'
+                                    actions={[{
+                                        title: 'Ок',
+                                        autoclose: true,
+                                        mode: 'default',
+                                        action: () =>handleToPreviousPanel(dispatch),
+                                    }]}
+                                >
+                                    <h2>Неудалось загрузить карту</h2>
+                                    <p>Произашла ошибка при загрузке. Закройте карту и повторите попытку</p>
+                                </Alert>))}
+                        onLoad={()=>dispatch(setPopoutView(null))}
                     >
                         <RouteButton/>
                         {/*<SearchControl*/}
