@@ -28,11 +28,18 @@ export const fetchCenters = (city, limit=10, offset=0, search='', category='', c
             category:category,
             vk_start_params:window.location.search
         }
-    })
-        .then(cb)
-        .catch(err=>console.error(err));
+    }).then(cb).catch(err=>console.error(err));
     //({data})=>dispatch(manageCenters({data:data, category:category, filter_search:search}, types.SET_CENTERS))
 };
+// export const fetchCenterInformation = (id, cb) => {
+//     axios.get(`${MAIN_SERVER_URL}/centers/oneofcenters`, {params:{
+//             id:id,
+//             vk_start_params:window.location.search
+//         }
+//     })
+//         .then(cb)
+//         .catch(err=>console.error(err));
+// };
 /** Rating **/
 export const fetchRatingCenters = (city, limit=10, offset=0, cb) =>{
     axios.get(`${MAIN_SERVER_URL}/centers`, {params:{
@@ -42,48 +49,48 @@ export const fetchRatingCenters = (city, limit=10, offset=0, cb) =>{
             reviews: 0,
             vk_start_params:window.location.search
         }
-    })
-        .then(cb)
-        .catch(err=>console.error(err));
+    }).then(cb).catch(err=>cb ? cb(null,err) : null);
 }
 /** Likes **/
 export const fetchLikedCenters = () =>
     axios.get(`${MAIN_SERVER_URL}/users/liked`, {params:{
         vk_start_params:window.location.search
     }
-})
-    .catch(err=>console.error(err));
+}).catch(err=>console.error(err));
 /** Reviewed **/
 export const fetchReviewedCenters = () =>
     axios.get(`${MAIN_SERVER_URL}/users/reviewed`, {params:{
             vk_start_params:window.location.search
         }
-    })
-        .catch(err=>console.error(err));
+    }).catch(err=>console.error(err));
+/** Changes **/
+export const fetchChangedCenters = () =>
+    axios.get(`${MAIN_SERVER_URL}/users/changed`, {params:{
+            vk_start_params:window.location.search
+        }
+    }).catch(err=>console.error(err));
+
 export const fetchComments = (center, cb) => dispatch =>
     axios.get(`${MAIN_SERVER_URL}/centers/comment`, {params:{
             id:center.id,
             vk_start_params:window.location.search
         }
-    })
-        .then(({data})=>{
+    }).then(({data})=>{
             dispatch(manageCenters(data, types.SET_COMMENTS));
             if (cb) cb();
-        })
-        .catch(err=>console.log(err));
-export const appendComment = (user, center, comment, type=0,stars=0, works=null) => dispatch =>
+        }).catch(err=>cb ? cb(null,err) : null);
+export const appendComment = (user, center, comment, images,type=0,stars=0, cb) => dispatch =>
     axios.post(`${MAIN_SERVER_URL}/centers/comment/insert`, {
         id:center.id,
         txt:comment,
         type:type,
+        image:images,
         stars:stars,
         vk_start_params:window.location.search,
-    })
-        .then(data=>{
-            dispatch(manageCenters({user,center,comment, id:data.data.id, type, stars}, types.APPEND_COMMENT))
-            works && dispatch(works)
-        })
-        .catch(err=>console.error(err));
+    }).then(({data})=>{
+            dispatch(manageCenters({user,comment, id:data.id, type, stars,image:data.image, center:{lines:data.lines,medium:data.medium}}, types.APPEND_COMMENT))
+            if (cb) cb(null,data)
+        }).catch(cb);
 export const deleteComment = (comment) => dispatch =>
     axios.post(`${MAIN_SERVER_URL}/centers/comment/delete`,
         {
@@ -91,9 +98,9 @@ export const deleteComment = (comment) => dispatch =>
             comment_id:comment.id,
             type:comment.type,
             vk_start_params: window.location.search
-        })
-        .then(()=>dispatch(manageCenters(comment, types.DELETE_COMMENT)))
-        .catch(err=>console.log(err));
+        }).then(({data})=>{
+            dispatch(manageCenters({deleted:comment, stars:data}, types.DELETE_COMMENT))
+        }).catch(err=>console.log(err));
 /** Comments-request for liking centers **/
 export const postLiking = (id) =>
     axios.post(`${MAIN_SERVER_URL}/centers/like`, {
@@ -113,13 +120,12 @@ export const sendCenterChanges = (id, images, changes,cb ) => dispatch =>(
         image:images,
         changes:changes,
         vk_start_params:window.location.search
-    }).then(({data})=>cb(data))
-        .catch(err=>cb(err.response.data))
+    }).then(({data})=>cb(data)).catch(err=>cb(err.response.data))
 )
 export const fetchFeed = (cb) => dispatch =>(
     axios.get(`${MAIN_SERVER_URL}/centers/feed`, { params:{vk_start_params:window.location.search}})
         .then(({data})=>{
             dispatch(setCenterSaidParams({feed:data}))
             if (cb) cb();
-        })
+        }).catch(()=>cb ? cb() : null)
 )

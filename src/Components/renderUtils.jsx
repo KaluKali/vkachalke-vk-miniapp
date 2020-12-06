@@ -7,6 +7,13 @@ import Icon24Phone from "@vkontakte/icons/dist/24/phone";
 import Icon24Place from '@vkontakte/icons/dist/24/place';
 import Icon28MoneySendOutline from "@vkontakte/icons/dist/28/money_send_outline";
 import Icon20BookOutline from '@vkontakte/icons/dist/20/book_outline';
+import Icon28MagicWandOutline from '@vkontakte/icons/dist/28/magic_wand_outline';
+import {BiRestaurant, BiSwim} from 'react-icons/bi'
+import {FaBath} from 'react-icons/fa'
+import {IoFitnessSharp} from 'react-icons/io5'
+import {MdRoomService} from 'react-icons/md'
+import {GiMountains} from 'react-icons/gi'
+import {BsLightning} from 'react-icons/bs'
 
 export function declension(number, one, two, five) {
     number %= 100;
@@ -22,7 +29,6 @@ export function declension(number, one, two, five) {
     }
     return five;
 }
-
 /**
  * @return {null}
  */
@@ -41,55 +47,30 @@ export function renderViewInfoState(state) {
     }
 }
 
-function protoString(str) {
-    if (typeof str !== 'string') return;
-    return {proto: str.search(/(http(s?)):\/\//i,''), replaced:str.replace(/(http(s?)):\/\//i,'')}
+export function protoString(str) {
+    if (typeof str !== 'string') return {proto: -1};
+    else return {proto: str.search(/(http(s)?):\/\//i,''), replaced:str.replace(/(http(s)?):\/\//i,'')}
 }
 
 export function socialInfoTypes(social, key, center) {
     const protoStr = protoString(center.data.info[social]);
     switch (social) {
         case 'vk':
-            return (<SimpleCell key={key} before={socialIcons(social)}>
+            return (<SimpleCell disabled key={key} before={socialIcons(social)}>
                 <Link href={protoStr.proto !==-1 ? center.data.info[social] : `https://${center.data.info[social]}`}
                       target={'_blank'} rel='noopener noreferrer'>{protoStr.replaced}</Link>
             </SimpleCell>);
         case 'number':
-            return (<SimpleCell key={key} before={socialIcons(social)}>
-                <Link href={`tel:${center.data.info[social]}`}>{center.data.info[social]}</Link>
+            return (<SimpleCell disabled key={key} before={socialIcons(social)}>
+                <Link href={`tel:${center.data.info[social].replace(/[^+0-9]/g,'')}`}>{center.data.info[social]}</Link>
             </SimpleCell>);
         case 'site':
-            return (<SimpleCell key={key} before={socialIcons(social)}>
+            return (<SimpleCell disabled key={key} before={socialIcons(social)}>
                 <Link href={protoStr.proto !==-1 ? center.data.info[social] : `https://${center.data.info[social]}`}
                       target={'_blank'} rel='noopener noreferrer'>{protoStr.replaced}</Link>
             </SimpleCell>);
-        // case 'instagram':
-        //     return (<Cell key={key} before={socialIcons(social)}>
-        //         <Link href={protoStr.proto !==-1 ? center.data.info[social] : `https://${center.data.info[social]}`}
-        //               target={'_blank'} rel='noopener noreferrer'>{protoStr.replaced}</Link>
-        //     </Cell>);
-        // case 'facebook':
-        //     return (<Cell key={key} before={socialIcons(social)}>
-        //         <Link href={protoStr.proto !==-1 ? center.data.info[social] : `https://${center.data.info[social]}`}
-        //               target={'_blank'} rel='noopener noreferrer'>{protoStr.replaced}</Link>
-        //     </Cell>);
-        // case 'twitter':
-        //     return (<Cell key={key} before={socialIcons(social)}>
-        //         <Link href={protoStr.proto !==-1 ? center.data.info[social] : `https://${center.data.info[social]}`}
-        //               target={'_blank'} rel='noopener noreferrer'>{protoStr.replaced}</Link>
-        //     </Cell>);
     }
 }
-export const socialAllowTypes = [
-    {type:'site',text:'Сайт'},
-    {type:'vk',text:'Vk'},
-    // {type:'instagram',text:'Instagram'},
-    // {type: 'facebook',text:'Facebook'},
-    // {type: 'twitter',text:'Twitter'},
-    {type: 'address', text:'Адрес'},
-    {type: 'index',text:'Индекс'},
-    {type: 'number',text:'Телефон'}
-]
 export const capabilitiesFieldsAllowTypes = [
     {text:"Способы оплаты"},
     {text:"Фитнес-клубы и тренажёрные залы"},
@@ -100,16 +81,35 @@ export const capabilitiesFieldsAllowTypes = [
     {text:"SPA-процедуры"},
     {text:"Бани / Сауны"},
     {text:"Тонизирующие салоны"}
-    ]
+]
 export function capabilitiesIcons(field) {
-   switch (field) {
-       case 'Способы оплаты':
-           return (<Icon28MoneySendOutline/>)
-       // case 'Фитнес-клубы и тренажёрные залы':
-       //     return (<FontAwesomeIcon icon={'swimmer'} size={'28px'}/>)
-       default:
-           return <div />
-   }
+    const props = {
+        className:'Icon Icon--28 Icon--w-28 Icon--h-28',
+        size:'28px',
+        color:'var(--text_link)'
+    }
+    switch (field) {
+        case capabilitiesFieldsAllowTypes[0].text:
+            return (<Icon28MoneySendOutline fill={'var(--text_link)'}/>)
+        case capabilitiesFieldsAllowTypes[1].text:
+            return (<IoFitnessSharp {...props}/>)
+        case capabilitiesFieldsAllowTypes[2].text:
+            return (<BiSwim {...props}/>)
+        case capabilitiesFieldsAllowTypes[3].text:
+            return (<MdRoomService {...props}/>)
+        case capabilitiesFieldsAllowTypes[4].text:
+            return (<BiRestaurant {...props}/>)
+        case capabilitiesFieldsAllowTypes[5].text:
+            return (<GiMountains {...props}/>)
+        case capabilitiesFieldsAllowTypes[6].text:
+            return (<Icon28MagicWandOutline fill={'var(--text_link)'}/>)
+        case capabilitiesFieldsAllowTypes[7].text:
+            return (<FaBath {...props}/>)
+        case capabilitiesFieldsAllowTypes[8].text:
+            return (<BsLightning {...props}/>)
+        default:
+            return <div />
+    }
 }
 
 export function socialIcons(field) {
@@ -122,29 +122,23 @@ export function socialIcons(field) {
             return (<Icon24Place fill={'var(--text_link)'}/>);
         case 'index':
             return (<Icon20BookOutline fill={'var(--text_link)'}/>);
-        // case 'instagram':
-        //     return (<Icon24LogoInstagram fill={'var(--text_link)'}/>);
-        // case 'facebook':
-        //     return (<Icon24LogoFacebook fill={'var(--text_link)'}/>);
-        // case 'twitter':
-        //     return (<Icon24LogoTwitter fill={'var(--text_link)'}/>);
         case 'number':
             return (<Icon24Phone fill={'var(--text_link)'}/>);
     }
 }
-
+export const socialAllowTypes = [
+    {type:'site',text:'Сайт'},
+    {type:'vk',text:'VK'},
+    {type: 'address', text:'Адрес'},
+    {type: 'index',text:'Индекс'},
+    {type: 'number',text:'Телефон'}
+]
 export function fieldType(field) {
     switch (field) {
         case 'site':
-            return {type:'url',text:'Сайт'};
+            return {type:'text',text:'Сайт'};
         case 'vk':
-            return {type:'url',text:'VK'};
-        // case 'instagram':
-        //     return {type:'url',text:'Instagram'};
-        // case 'facebook':
-        //     return {type: 'url',text:'Facebook'};
-        // case 'twitter':
-        //     return {type: 'url',text:'Twitter'};
+            return {type:'text',text:'VK'};
         case 'number':
             return {type: 'tel',text:'Телефон'};
         case 'address':
@@ -156,6 +150,5 @@ export function fieldType(field) {
     }
 }
 
-export const categories =
-    ["Авиационные клубы", "Бассейны", "Велнес-залы", "Гольф-клубы", "Дайвинг-центры", "Картинг / Автоцентры / Мотоцентры", "Конные клубы / Ипподромы", "Ледовые дворцы / Катки", "Лыжные базы / Горнолыжные комплексы", "Обучение фитнес-инструкторов", "Прокат спортивного инвентаря / техники", "Профессиональные спортивные клубы", "Ремонт спортивного инвентаря", "Ремонт спортивного оборудования", "Скалодромы", "Сквош-корты", "Спортивная одежда / обувь", "Спортивно-интеллектуальные клубы", "Спортивно-наградная продукция", "Спортивно-тактические клубы", "Спортивно-технические клубы", "Спортивное оборудование", "Спортивное питание", "Спортивные секции", "Спортивные школы", "Спортивный инвентарь", "Стадионы", "Теннисные корты", "Тренажёрные залы", "Федерации спорта", "Фитнес-клубы", "Центры йоги", "Яхт-клубы"]
+export const categories = ["Авиационные клубы", "Бассейны", "Велнес-залы", "Гольф-клубы", "Дайвинг-центры", "Картинг / Автоцентры / Мотоцентры", "Конные клубы / Ипподромы", "Ледовые дворцы / Катки", "Лыжные базы / Горнолыжные комплексы", "Обучение фитнес-инструкторов", "Прокат спортивного инвентаря / техники", "Профессиональные спортивные клубы", "Ремонт спортивного инвентаря", "Ремонт спортивного оборудования", "Скалодромы", "Сквош-корты", "Спортивная одежда / обувь", "Спортивно-интеллектуальные клубы", "Спортивно-наградная продукция", "Спортивно-тактические клубы", "Спортивно-технические клубы", "Спортивное оборудование", "Спортивное питание", "Спортивные секции", "Спортивные школы", "Спортивный инвентарь", "Стадионы", "Теннисные корты", "Тренажёрные залы", "Федерации спорта", "Фитнес-клубы", "Центры йоги", "Яхт-клубы"]
 

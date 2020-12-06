@@ -4,12 +4,9 @@ const CircularDependencyPlugin = require('circular-dependency-plugin');
 
 module.exports = require('./webpack.config')({
   mode: 'development',
-  entry: {
-    main: './src/index.jsx',
-  },
+  entry: './src/index.jsx',
   output: {
     filename: '[name].js',
-    chunkFilename: '[name].chunk.js',
   },
   plugins: [
     new webpack.HotModuleReplacementPlugin(), // Tell webpack we want hot reloading

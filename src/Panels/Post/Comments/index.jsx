@@ -4,11 +4,13 @@ import {
     ActionSheetItem,
     Avatar,
     Button,
+    Card,
     Div,
     Footer,
     Gallery,
     Group,
     Header,
+    HorizontalScroll,
     IOS,
     List,
     Panel,
@@ -43,7 +45,7 @@ import {
 } from '../../../state/reducers/vk/actions';
 import {Line} from 'rc-progress';
 import Stars from "../../../Components/Stars";
-import {MODAL_CARD_REVIEW, MODAL_DETAILS} from "../../../constants/Modal";
+import {MODAL_CARD_REVIEW, MODAL_DETAILS, MODAL_SELECT_IMAGES} from "../../../constants/Modal";
 import Timetable from "../../../Components/Timetable";
 import NakedImage from "../../../Components/NakedImage";
 import Icon16DoneCircle from "@vkontakte/icons/dist/16/done_circle";
@@ -67,54 +69,67 @@ const Comment = (props) => {
     // const commentInputRef = useRef(null);
     const [fetching, setFetching] = useState(false);
 
-
     useEffect(()=>{
-        dispatch(fetchComments(center));
-    }, []);
+        dispatch(fetchComments(center,()=>setFetching(false)));
+    }, [fetching]);
 
-    const commentCell = (cmt, key) => {
+    const commentCell = (cmt, root_key) => {
         return (
-            <RichCell
-                multiline
-                key={key}
-                before={<Avatar size={38} src={cmt.photo_100} />}
-                text={<Fragment>
-                    {cmt.stars ? <Stars stars={cmt.stars}/> : null}
-                    <label>{cmt.text}</label>
-                </Fragment>}
-                onClick={()=>
-                    dispatch(
-                        setPopoutView(
-                            <ActionSheet onClose={()=>{dispatch(setPopoutView(null))}}>
-                                {user.id === cmt.vk_user_id ?
-                                    <ActionSheetItem autoclose mode='destructive' onClick={()=>dispatch(deleteComment(cmt))}>
-                                        Удалить
-                                    </ActionSheetItem> :
-                                    <ActionSheetItem autoclose mode='destructive' onClick={()=>{
-                                        dispatch(sendRequest(2, {id:cmt.id}))
-                                        dispatch(setVkSaidParams({snackbar: (
-                                                <Snackbar
-                                                    duration={2000}
-                                                    layout="vertical"
-                                                    onClose={() =>dispatch(setVkSaidParams({snackbar: null}))}
-                                                    before={<Icon16DoneCircle fill={'var(--accent)'} />}
-                                                >Ваша жалоба отправлена, мы проверим комментарий и сообщим о результатах.</Snackbar>
-                                            )}))
-                                    }}>
-                                        Пожаловаться
-                                    </ActionSheetItem>
-                                }
-                                {/*<ActionSheetItem autoclose mode='default' onClick={()=>{*/}
-                                {/*    commentInputRef.current.focus()*/}
-                                {/*}}>*/}
-                                {/*    Ответить*/}
-                                {/*</ActionSheetItem>*/}
-                                {platform === IOS && <ActionSheetItem autoclose mode='cancel'>Отменить</ActionSheetItem>}
-                            </ActionSheet>
-                        )
-                    )
-                }
-            >{`${cmt.first_name} ${cmt.last_name}`}</RichCell>
+            <Div key={root_key}>
+                <Card mode={'shadow'}>
+                    <RichCell
+                        multiline
+                        before={<Avatar size={38} src={cmt.photo_100} />}
+                        text={<Fragment>
+                            {cmt.stars ? <Stars stars={cmt.stars}/> : null}
+                        </Fragment>}
+                        onClick={()=>
+                            dispatch(
+                                setPopoutView(
+                                    <ActionSheet onClose={()=>{dispatch(setPopoutView(null))}}>
+                                        {user.id === cmt.vk_user_id ?
+                                            <ActionSheetItem autoclose mode='destructive' onClick={()=>dispatch(deleteComment(cmt))}>
+                                                Удалить
+                                            </ActionSheetItem> :
+                                            <ActionSheetItem autoclose mode='destructive' onClick={()=>{
+                                                dispatch(sendRequest(2, {id:cmt.id}))
+                                                dispatch(setVkSaidParams({snackbar: (
+                                                        <Snackbar
+                                                            duration={2000}
+                                                            layout="vertical"
+                                                            onClose={() =>dispatch(setVkSaidParams({snackbar: null}))}
+                                                            before={<Icon16DoneCircle fill={'var(--accent)'} />}
+                                                        >Ваша жалоба отправлена, мы проверим комментарий и сообщим о результатах.</Snackbar>
+                                                    )}))
+                                            }}>Пожаловаться</ActionSheetItem>
+                                        }
+                                        {/*<ActionSheetItem autoclose mode='default' onClick={()=>{*/}
+                                        {/*    commentInputRef.current.focus()*/}
+                                        {/*}}>*/}
+                                        {/*    Ответить*/}
+                                        {/*</ActionSheetItem>*/}
+                                        {platform === IOS && <ActionSheetItem autoclose mode='cancel'>Отменить</ActionSheetItem>}
+                                    </ActionSheet>
+                                )
+                            )
+                        }
+                    >{`${cmt.first_name} ${cmt.last_name}`}</RichCell>
+                    <Div>
+                        {cmt.text}
+                    </Div>
+                    {cmt.image && cmt.image.length ? <Div>
+                        <HorizontalScroll>
+                            <div style={{display:'flex'}}>
+                                {cmt.image.map((img, key)=>(
+                                    <div key={key} style={{paddingRight: 8}}><Avatar mode={'image'} size={72} src={img} onClick={()=>{
+                                        abstractVkBridge('VKWebAppShowImages', {images:[img, ...cmt.image.filter((_,k)=>k!==key)]})
+                                    }}/></div>
+                                ))}
+                            </div>
+                        </HorizontalScroll>
+                    </Div> : null}
+                </Card>
+            </Div>
         )
     }
     return (
@@ -126,10 +141,7 @@ const Comment = (props) => {
                     >Отзывы</PanelHeaderContent>
                 </PanelHeader>
                 {/** TODO убрать это дерьмо **/}
-                <PullToRefresh isFetching={fetching} onRefresh={()=>{
-                    setFetching(true);
-                    dispatch(fetchComments(center, ()=>setFetching(false)))
-                }}>
+                <PullToRefresh isFetching={fetching} onRefresh={()=>setFetching(true)}>
                     {/** Image block **/}
                     {center.image ?
                         <Gallery
@@ -137,9 +149,10 @@ const Comment = (props) => {
                             style={{ height: '180px' }}
                             align='center'
                             bullets={scheme === 'space_gray' ? 'light' : 'dark'}
-                            onClick={()=>abstractVkBridge('VKWebAppShowImages', {images:center.image})}
                         >
-                            { center.image.map((img_url,key)=><NakedImage key={key} url={img_url} size={180} />) }
+                            { center.image.map((img_url,key)=><NakedImage onClick={()=>{
+                                abstractVkBridge('VKWebAppShowImages', {images:[img_url,...center.image.filter((_,k)=>k!==key)]})
+                            }} key={key} url={img_url} size={180} />) }
                         </Gallery>
                         : <Placeholder
                             icon={<Icon56CameraOffOutline />}
@@ -157,7 +170,7 @@ const Comment = (props) => {
                                       dispatch(setPopoutView(<ScreenSpinner />))
                                   }}
                             >
-                                {`${center.data.info.address}${center.data.info.index ? `, ${center.data.info.index}` : ''}`}
+                                <label style={{color:'var(--accent)'}}>{`${center.data.info.address}${center.data.info.index ? `, ${center.data.info.index}` : ''}`}</label>
                             </SimpleCell>
                             {/** Timetable icon **/}
                             {center.data.hours.length ?
@@ -187,7 +200,7 @@ const Comment = (props) => {
                         <List>
                             {
                                 center.stars.lines.map((star, key)=>(
-                                    <SimpleCell key={key} before={<Text style={{marginRight:'12px', color:'#7b848f'}}>{key+1}</Text>}>
+                                    <SimpleCell disabled key={key} before={<Text style={{marginRight:'12px', color:'#7b848f'}}>{key+1}</Text>}>
                                         <Line percent={star} strokeWidth="4" strokeColor={'#fbbd00'}/>
                                     </SimpleCell>
                                 ))

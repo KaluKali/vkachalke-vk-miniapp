@@ -3,6 +3,7 @@ import * as types from './types';
 const initialState = {
   popout:null,
   modal:null,
+  modalHistory:[null],
   snackbar:null,
   scheme:'bright_light',
   user_server:{

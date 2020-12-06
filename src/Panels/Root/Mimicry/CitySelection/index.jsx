@@ -3,9 +3,9 @@ import {Footer, Group, List, Panel, PanelHeader, PanelHeaderBack, Search, Simple
 import PropTypes from "prop-types";
 import {handleToPreviousPanel} from "../../../../core/HistoryDispatcher";
 import {useDispatch} from "react-redux";
-import debounce from "lodash/debounce";
-import {fetchCities, sendUserChanges, setVkUser} from "../../../../state/reducers/vk/actions";
-import * as types from "../../../../state/reducers/vk/types";
+import debounce from "../../../../Components/debounce";
+import {fetchCities, sendUserChanges, setVkSaidParams} from "../../../../state/reducers/vk/actions";
+import {SET_SERVER_USER} from "../../../../state/reducers/vk/types";
 
 const CitySelection = (props) => {
     const { id } = props;
@@ -37,20 +37,25 @@ const CitySelection = (props) => {
     return (
         <Panel id={id}>
             <PanelHeader left={<PanelHeaderBack onClick={() => handleToPreviousPanel(dispatch)} />}>Выбор города</PanelHeader>
-            <Search placeholder={'Начните вводить текст'} maxLength={50} onChange={()=>{
-                setLoadState(true)
-                onChangeSearch()
+            <Search placeholder={'Начните вводить текст'} maxLength={50} onChange={(e)=>{
+                if (e.target.value[e.target.value.length-1] !== ' ') {
+                    setLoadState(true)
+                    onChangeSearch()
+                }
             }} getRef={searchRef}/>
             <Group>
                 {loadState ? <Spinner/> :
                     <List>
-                        {!cities.length && searchRef.current ? <Footer>Ничего не найдено</Footer> : null}
+                        {!cities.length && searchRef.current && typeof searchRef.current.value === 'string' ? <Footer>Ничего не найдено</Footer> : null}
+                        {!cities.length && !searchRef.current ? <Footer>Здесь будут результаты поиска</Footer> : null}
                         {cities.map((city,key)=>(
                             <SimpleCell key={key}
                                   onClick={()=>{
                                       sendUserChanges({city:city})
-                                      dispatch(setVkUser({city:city}, types.SET_SERVER_USER))
-                                      handleToPreviousPanel(dispatch)
+                                          .then(()=>{
+                                              dispatch({type:SET_SERVER_USER, payload:{city:city}})
+                                              handleToPreviousPanel(dispatch)
+                                          },()=>handleToPreviousPanel(dispatch))
                                   }}
                             >{city}</SimpleCell>
                         ))}

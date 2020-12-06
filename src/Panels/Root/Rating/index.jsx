@@ -19,9 +19,13 @@ const Rating = (props) => {
     const [centers, setCenters] = useState([])
 
     useEffect(()=>{
-        fetchRatingCenters(user_city,10,0,({data})=>{
-            setCenters(data)
-            !data.length && setHasMore(false)
+        fetchRatingCenters(user_city,10,0,({data}, err)=>{
+            if (!err) {
+                setCenters(data)
+                !data.length && setHasMore(false)
+            } else {
+                setHasMore(false)
+            }
         })
     },[])
 
@@ -29,7 +33,7 @@ const Rating = (props) => {
         <Panel id={id}>
             <PanelHeader>Рейтинг</PanelHeader>
             <InfiniteScroll
-                scrollThreshold={0.9}
+                scrollThreshold={1}
                 dataLength={centers.length}
                 next={()=>fetchRatingCenters(user_city,10,dataOffset+10,({data})=>{
                     setDataOffset(dataOffset+10)
@@ -38,9 +42,9 @@ const Rating = (props) => {
                     } else setHasMore(false)
                 })}
                 hasMore={hasMore}
-                loader={<Spinner />}
+                loader={<Spinner style={{paddingTop: 20}}/>}
                 // вызывается когда hasMore = false
-                endMessage={<Footer>{`Не удалось найти заведения с отзывами для города ${user_city}`}</Footer>}
+                endMessage={<Footer>{`Не удалось найти больше заведений с отзывами для города ${user_city}`}</Footer>}
             >
                 {centers && centers.map((center)=>
                     <CenterHeader
@@ -51,6 +55,10 @@ const Rating = (props) => {
                         starSize={20}
                         caption={center.data.info.address}
                         onClick={()=>{
+                            dispatch(setCenterSaidParams({ center:center }));
+                            dispatch(setActiveView({ panelId:POST_PANEL, viewId:POST_VIEW }))
+                        }}
+                        onClickAvatar={()=>{
                             dispatch(setCenterSaidParams({ center:center }));
                             dispatch(setActiveView({ panelId:POST_PANEL, viewId:POST_VIEW }))
                         }}

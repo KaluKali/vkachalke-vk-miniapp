@@ -1,39 +1,98 @@
-import React, {useEffect} from 'react';
-import {Appearance, ConfigProvider, Root, Scheme, Snackbar} from '@vkontakte/vkui';
+import React, {useEffect, Suspense} from 'react';
+import {
+    Alert,
+    Appearance,
+    ConfigProvider,
+    Div,
+    Placeholder,
+    PopoutWrapper,
+    Root,
+    Scheme,
+    Snackbar,
+    Spinner
+} from '@vkontakte/vkui';
 import {useDispatch, useSelector} from 'react-redux';
-import {fetchServerUser, setVkSaidParams, setVkUser} from '../state/reducers/vk/actions';
+import {fetchServerUser, setPopoutView, setVkSaidParams} from '../state/reducers/vk/actions';
 import MainView from '../Views/Root';
-
+import Icon56WifiOutline from '@vkontakte/icons/dist/56/wifi_outline';
 import {EDITOR_VIEW, POST_VIEW, ROOT_VIEW} from '../constants/View';
 import Icon16DoneCircle from '@vkontakte/icons/dist/16/done_circle';
-import {setPreviousPanel} from '../state/reducers/history/actions';
+import {setActivePanel, setPreviousPanel} from '../state/reducers/history/actions';
 
 import PostView from '../Views/Post';
-import {fetchFeed} from '../state/reducers/content/actions';
 import bridge from '@vkontakte/vk-bridge';
 import EditorView from "../Views/Editor";
-import * as types from "../state/reducers/vk/types";
+import {CITY_SELECTION_PANEL} from "../constants/Panel";
 
-const App = () => {
+
+const App = (props) => {
+    const { user_info } = props
+    const user_object = user_info.read()
     const dispatch = useDispatch();
     const {activeView} = useSelector((state) => state.history);
     const colorScheme = useSelector(state=>state.vk.scheme);
 
     useEffect(() => {
-        bridge.send('VKWebAppInit');
-        bridge.send('VKWebAppGetUserInfo')
-            .then(data=>{
-                dispatch(setVkUser(data, types.SET_VK_USER))
-                dispatch(fetchServerUser(()=>{
-                    dispatch(fetchFeed());
-                }));
-            });
-        window.addEventListener('popstate', () => dispatch(setPreviousPanel()));
-        return ()=> window.removeEventListener('popstate', () => dispatch(setPreviousPanel()));
+        dispatch(setVkSaidParams(user_object))
+        bridge.send('VKWebAppInit')
+        if (!user_object.user_server.isCitySupport) {
+            dispatch(setPopoutView(
+                <Alert
+                    onClose={()=>dispatch(setPopoutView(null))}
+                    actionsLayout={'horizontal'}
+                    actions={[{
+                        title: 'Нет',
+                        autoclose: true,
+                        mode: 'default',
+                        action: () => dispatch(setPopoutView(null)),
+                    },{
+                        title: 'Да',
+                        autoclose: true,
+                        mode: 'destructive',
+                        action: () => dispatch(setActivePanel(CITY_SELECTION_PANEL)),
+                    }]}
+                >
+                    <h2>Ваш город не поддерживается приложением</h2>
+                    <p>Хотите сменить его?</p>
+                </Alert>))
+        }
+
+        const online = ()=>{
+            dispatch(setPopoutView(null))
+        }
+        const offline = ()=> {
+            dispatch(setPopoutView(
+                <PopoutWrapper alignY={'center'} alignX={'center'}>
+                    <Div style={{
+                        background: 'var(--background_content)',
+                        width: '100%',
+                        height: '100%',
+                        display: 'flex',
+                        justifyContent: 'center'
+                    }}>
+                        <Placeholder
+                            icon={<Icon56WifiOutline fill={'var(--accent)'}/>}
+                            header={'Вы оффлайн'}
+                        >Подключитесь к интернету чтобы продолжить работу</Placeholder>
+                    </Div>
+                </PopoutWrapper>
+            ))
+        }
+        const popstate = () => {
+            if (window.navigator.onLine) dispatch(setPreviousPanel())
+        }
+        window.addEventListener('online', online)
+        window.addEventListener('offline', offline)
+        window.addEventListener('popstate', popstate);
+        return ()=>{
+            window.removeEventListener('popstate', popstate)
+            window.removeEventListener('online', online)
+            window.removeEventListener('offline', offline)
+        };
     }, []);
 
     useEffect(() => {
-        const vkEvents = bridge.subscribe(e => {
+        const vkEvents = e => {
             switch(e.detail.type) {
                 case 'VKWebAppCopyTextResult':
                     if (e.detail.data.result) {
@@ -61,12 +120,12 @@ const App = () => {
                     console.log(e.detail.type, e.detail.data);
                     break;
             }
-        });
+        }
+        bridge.subscribe(vkEvents);
         return () => {
             bridge.unsubscribe(vkEvents);
         };
     }, []);
-
     return (
         <ConfigProvider
             // isWebView={true}
@@ -83,4 +142,4 @@ const App = () => {
     );
 };
 
-export default App;
+export default React.memo(App);

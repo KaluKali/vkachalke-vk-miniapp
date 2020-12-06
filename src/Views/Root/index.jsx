@@ -7,6 +7,7 @@ import {
     FormStatus,
     Group,
     Input,
+    List,
     ModalCard,
     ModalPage,
     ModalPageHeader,
@@ -24,7 +25,7 @@ import {useDispatch, useSelector} from "react-redux";
 
 import {setActivePanel, setPreviousPanel} from "../../state/reducers/history/actions";
 import {
-    BOARD_PANEL,
+    BOARD_PANEL, CHANGED_CENTERS_PANEL,
     CITY_SELECTION_PANEL,
     FIND_PANEL,
     LIKED_CENTERS_PANEL,
@@ -37,7 +38,7 @@ import Icon28UserCircleOutline from "@vkontakte/icons/dist/28/user_circle_outlin
 import Profile from "../../Panels/Root/Profile";
 import Rating from "../../Panels/Root/Rating";
 import {MODAL_CARD_OWNER, MODAL_FILTER, MODAL_FILTER_CATEGORIES} from "../../constants/Modal";
-import {sendRequest, setModalView, setVkSaidParams} from "../../state/reducers/vk/actions";
+import {sendRequest, setModalView, setPreviousModal, setVkSaidParams} from "../../state/reducers/vk/actions";
 import Icon16DoneCircle from "@vkontakte/icons/dist/16/done_circle";
 import Icon24Search from '@vkontakte/icons/dist/24/search';
 import Icon24ServicesOutline from '@vkontakte/icons/dist/24/services_outline';
@@ -50,6 +51,7 @@ import Likes from "../../Panels/Root/Profile/Likes";
 import Reviewed from "../../Panels/Root/Profile/Reviewed";
 import {categories} from "../../Components/renderUtils";
 import {ROOT_VIEW} from "../../constants/View";
+import Changes from "../../Panels/Root/Profile/Changes";
 
 const MainView = (props) => {
     const { id } = props;
@@ -69,37 +71,37 @@ const MainView = (props) => {
     };
 
     const modalPages = (
-        <ModalRoot activeModal={modal} onClose={()=>dispatch(setModalView(null))}>
+        <ModalRoot activeModal={modal} onClose={()=>dispatch(setPreviousModal())}>
             <ModalPage
                 id={MODAL_FILTER}
                 header={<ModalPageHeader
-                        right={<PanelHeaderButton onClick={()=>dispatch(setModalView(null))}>
+                        right={<PanelHeaderButton onClick={()=>dispatch(setPreviousModal())}>
                             <Icon24Done />
                         </PanelHeaderButton>}>Фильтры</ModalPageHeader>}
             >
-                <FormLayout>
-                    <SelectMimicry top={'Категория'} placeholder={'Выбрать категорию'}
-                                   onClick={()=>dispatch(setModalView(MODAL_FILTER_CATEGORIES))}>
-                        {activeCategory}
-                    </SelectMimicry>
-                    <div style={{paddingBottom:10}} />
+                <FormLayout Component={'div'}>
+                    <List>
+                        <SelectMimicry top={'Категория'} placeholder={'Выбрать категорию'}
+                                       onClick={()=>dispatch(setModalView(MODAL_FILTER_CATEGORIES))}>
+                            {activeCategory}
+                        </SelectMimicry>
+                        <div style={{paddingBottom:10}} />
+                    </List>
                 </FormLayout>
             </ModalPage>
             <ModalPage
                 id={MODAL_FILTER_CATEGORIES}
-                onClose={()=>dispatch(setModalView(MODAL_FILTER))}
+                onClose={()=>dispatch(setPreviousModal())}
                 header={<ModalPageHeader
-                    right={<PanelHeaderButton onClick={()=>dispatch(setModalView(MODAL_FILTER))}>
+                    right={<PanelHeaderButton onClick={()=>dispatch(setPreviousModal())}>
                         <Icon24Done />
                     </PanelHeaderButton>}>Выберите категорию</ModalPageHeader>}
             >
                 <Group>
+                    {activeCategory !== '' &&
                     <Div style={{display:'flex'}}>
-                        <Button onClick={()=>{
-                            if (activeCategory !== '') onClickCategory('')
-                            dispatch(setModalView(MODAL_FILTER))
-                        }} size={'l'} stretched mode={'destructive'}>Отчистить</Button>
-                    </Div>
+                        <Button onClick={()=>onClickCategory('')} size={'l'} stretched mode={'destructive'}>Очистить</Button>
+                    </Div>}
                     {categories.map((cat,key)=>(
                         <Radio key={key} value={cat} checked={activeCategory===cat}
                                onChange={(e)=>onClickCategory(e.target.value)}>{cat}</Radio>
@@ -109,14 +111,14 @@ const MainView = (props) => {
             <ModalCard
                 id={MODAL_CARD_OWNER}
                 header="Подтверждение"
-                onClose={()=>dispatch(setModalView(null))}
+                onClose={()=>dispatch(setPreviousModal())}
                 actions={[
                     {
                         title: 'Отправить',
                         mode: 'commerce',
                         action: ()=>{
-                            if (groupInputRef.current.value) {
-                                dispatch(setVkSaidParams({modal:null}))
+                            if (groupInputRef.current.value && /^(https:\/\/|)vk\.com\/.+/i.test(groupInputRef.current.value)) {
+                                dispatch(setPreviousModal())
                                 dispatch(sendRequest(1, {vk_group:groupInputRef.current.value}))
                                 dispatch(setVkSaidParams({snackbar: (
                                         <Snackbar
@@ -191,6 +193,7 @@ const MainView = (props) => {
                 <Reviewed id={REVIEWED_CENTERS_PANEL} />
                 <Board id={BOARD_PANEL} />
                 <CitySelection id={CITY_SELECTION_PANEL} />
+                <Changes id={CHANGED_CENTERS_PANEL} />
             </View>
         </Epic>
     );

@@ -13,12 +13,12 @@ const MapView = (props) => {
 
     return (
         <Panel id={id}>
-            <PanelHeader left={<PanelHeaderBack onClick={() => handleToPreviousPanel(dispatch)} />}>
+            <PanelHeader separator={false} left={<PanelHeaderBack onClick={() => handleToPreviousPanel(dispatch)} />}>
                 <PanelHeaderContent
                     status={center.data.name}
                 >Карта</PanelHeaderContent>
             </PanelHeader>
-            <div style={{ height: '100vh', width: '100%' }}>
+            <div style={{ height: '91vh', width: '100%' }}>
                 <YMaps
                     query={{
                         lang:'ru_RU',

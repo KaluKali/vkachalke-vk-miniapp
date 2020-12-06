@@ -50,35 +50,41 @@ const contentReducer = (state = initialState, action) => {
       if (state.active_post_comments.commented !== -1) {
         state.active_post_comments.content[state.active_post_comments.commented].text=action.payload.comment;
         state.active_post_comments.content[state.active_post_comments.commented].stars=action.payload.stars;
+        state.active_post_comments.content[state.active_post_comments.commented].image=action.payload.image;
+        state.center = {...state.center,stars:action.payload.center}
         return state
       } else {
         if (action.payload.type) state.center.comments=parseInt(state.center.comments)+1;
       }
+
       return {
         ...state,
+        center: {...state.center,stars:action.payload.center},
         active_post_comments: {
           content:[...state.active_post_comments.content,
             {
               id:action.payload.id,
-              post_id:action.payload.center.id,
+              post_id:state.center.id,
               first_name:action.payload.user.first_name,
               last_name:action.payload.user.last_name,
               photo_100:action.payload.user.photo_100,
               text:action.payload.comment,
               stars:action.payload.stars,
               type:action.payload.type,
-              vk_user_id:action.payload.user.id
+              vk_user_id:action.payload.user.id,
+              image:action.payload.image
             }],
           commented: state.active_post_comments.content.length
         }
       };
     case types.DELETE_COMMENT:
-      if (action.payload.type) state.center.comments=parseInt(state.center.comments)-1;
+      if (action.payload.deleted.type) state.center.comments=parseInt(state.center.comments)-1;
       return {
         ...state,
+        center: {...state.center,stars:action.payload.stars},
         active_post_comments: {
           ...state.active_post_comments,
-          content: state.active_post_comments.content.filter(cmt=>cmt.id!==action.payload.id),
+          content: state.active_post_comments.content.filter(cmt=>cmt.id!==action.payload.deleted.id),
           commented: -1
         }
       };

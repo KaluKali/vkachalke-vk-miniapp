@@ -5,18 +5,16 @@ const NakedImage = (props) => {
     const { children, url, size, style, onClick } = props;
 
     return (
-        <Fragment>
-            <div
-                onClick={onClick}
-                style={{
-                    backgroundPosition: 'center center',
-                    backgroundSize: `cover`,
-                    height:`${size}px`,
-                    backgroundImage:`url(${url})`,
-                    backgroundRepeat: 'no-repeat',
-                    ...style
-                }}>{children}</div>
-        </Fragment>
+        <div
+            onClick={onClick}
+            style={{
+                backgroundPosition: 'center center',
+                backgroundSize: `cover`,
+                height:`${size}px`,
+                backgroundImage:`url(${url})`,
+                backgroundRepeat: 'no-repeat',
+                ...style
+            }}>{children}</div>
     );
 };
 

@@ -5,7 +5,7 @@ import {Card, Div, List, ScreenSpinner, SimpleCell} from "@vkontakte/vkui";
 import Icon24Place from '@vkontakte/icons/dist/24/place';
 import Icon24Recent from '@vkontakte/icons/dist/24/recent';
 import {setActiveView} from "../../state/reducers/history/actions";
-import {MAPVIEW_PANEL} from "../../constants/Panel";
+import {MAPVIEW_PANEL, POST_PANEL} from "../../constants/Panel";
 import {POST_VIEW} from "../../constants/View";
 import {abstractVkBridge, setPopoutView} from "../../state/reducers/vk/actions";
 import Timetable from "../Timetable";
@@ -27,9 +27,11 @@ const FeedSnippet = (props) => {
                     actual={center.actual}
                     avatar={center.avatar}
                     onClick={() => abstractVkBridge('VKWebAppCopyText', {'text': center.data.name})}
-                >
-                    {center.data.name}
-                </CenterHeader>
+                    onClickAvatar={()=>{
+                        dispatch(setCenterSaidParams({ center:center }));
+                        dispatch(setActiveView({ panelId:POST_PANEL, viewId:POST_VIEW }))
+                    }}
+                >{center.data.name}</CenterHeader>
                 {/** Content block **/}
                 <List>
                     {/** Map icon **/}
@@ -39,8 +41,7 @@ const FeedSnippet = (props) => {
                               dispatch(setActiveView({panelId:MAPVIEW_PANEL,viewId:POST_VIEW}))
                               dispatch(setPopoutView(<ScreenSpinner />))
                           }}
-                    >
-                        {`${center.data.info.address}${center.data.info.index ? `, ${center.data.info.index}` : ''}`}
+                    ><label style={{color:'var(--accent)'}}>{`${center.data.info.address}${center.data.info.index ? `, ${center.data.info.index}` : ''}`}</label>
                     </SimpleCell>
                     {/** Timetable icon **/}
                     {center.data.hours.length ?

@@ -1,6 +1,7 @@
 import bridge from "@vkontakte/vk-bridge";
 import * as types from "./types";
 import {BOARD_PANEL} from "../../../constants/Panel";
+import {setModalView, setPopoutView, setPreviousModal, setVkSaidParams} from "../vk/actions";
 
 export const setActivePanel = (panelId,needSave=true) => {
   return (dispatch, getState) => {
@@ -10,7 +11,9 @@ export const setActivePanel = (panelId,needSave=true) => {
     if (activePanel === BOARD_PANEL) {
       bridge.send('VKWebAppEnableSwipeBack');
     }
-
+    if (state.vk.snackbar) {
+      dispatch(setVkSaidParams({snackbar:null}))
+    }
     if (needSave) window.history.pushState({ panel: panelId, view:activeView }, panelId);
     dispatch({
       type: types.SET_ACTIVE_PANEL,
@@ -39,6 +42,16 @@ export const setPreviousPanel = () => {
   return (dispatch, getState) => {
     const state = getState();
     const { history } = state.history;
+
+    if (state.vk.popout) {
+      return dispatch(setPopoutView(null))
+    }
+    if (state.vk.modal) {
+      return dispatch(setPreviousModal())
+    }
+    if (state.vk.snackbar) {
+      dispatch(setVkSaidParams({snackbar:null}))
+    }
 
     if (history.length === 1) {
       return bridge.send('VKWebAppClose', { status: "success" });

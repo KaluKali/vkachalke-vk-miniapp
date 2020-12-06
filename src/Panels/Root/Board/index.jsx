@@ -71,8 +71,8 @@ const Board = (props) => {
                         action={<Button size="l" mode="tertiary"
                                         onClick={()=>dispatch(setActivePanel(FIND_PANEL))}
                         ><label style={{textAlign:'center'}}>
-                            {user_server.likes <= 0 ? 'Лайкните любое заведение чтобы получать от него интересные новости'
-                                : 'Заведения не разместили каких либо новостей'}
+                            {user_server.likes === 0 ? 'Лайкните любое заведение, чтобы получать от него интересные новости'
+                                : 'Заведения не разместили каких-либо новостей'}
                         </label></Button>}
                     >Лента пуста...</Placeholder>}
             </PullToRefresh>
