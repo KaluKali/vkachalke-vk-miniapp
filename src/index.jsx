@@ -120,41 +120,22 @@ const AppSuspense = () => {
 
     useEffect(()=>{
         let result;
-        Promise.all([bridge.send('VKWebAppGetUserInfo').then(user=>user), fetchServerUser().then(({data})=>data)])
-            .then(data=>{
-                let user = data[0]
-                let user_server = data[1]
-
-                console.log(user)
-                console.log(user_server)
-
-                if (!user_server.city) {
-                    if (user.city.title==="") {
-                        user_server.city='Test'
-                        user_server.isCitySupport=false
-                        result={user,user_server}
-                        setUserInfo(result)
-                    } else {
-                        fetchServerSupports(user.city.title)
-                            .then(({data})=>{
-                                user_server.city=user.city.title
-                                user_server.isCitySupport=data.city
-                                result={user,user_server}
-                                setUserInfo(result)
-                            },err=>{
-                                result={user_server:{city:'Test',isCitySupport:false},user:user}
-                                setUserInfo(result)
-                            })
-                    }
-                } else {
-                    result={user,user_server}
-                    result.user_server.isCitySupport=true
+        bridge.send('VKWebAppGetUserInfo').then((data)=>{
+            fetchServerUser().then(({data:user_server})=>{
+                result = user_server.city ? {user:data, user_server:user_server} : {user:data, user_server:{...user_server, city:data.city.title}}
+                if (!result.user_server.city || result.user_server.city==='') {
+                    result.user_server.city='Test'
+                    result.user_server.isCitySupport=false
                     setUserInfo(result)
+                } else {
+                    fetchServerSupports(result.user_server.city)
+                        .then(({data})=>{
+                            result.user_server.isCitySupport=data.city
+                            setUserInfo(result)
+                        })
                 }
-            }, err=>{
-                result={user_server:{city:'Test',isCitySupport:false},user:{}}
-                setUserInfo(result)
             })
+        })
     },[])
 
     return (

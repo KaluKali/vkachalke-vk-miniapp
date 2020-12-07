@@ -25,7 +25,6 @@ import {CITY_SELECTION_PANEL} from "../constants/Panel";
 
 const App = (props) => {
     const { user_info } = props
-    const network_user_object = user_info
     const dispatch = useDispatch();
     const {activeView} = useSelector((state) => state.history);
     const colorScheme = useSelector(state=>state.vk.scheme);
@@ -33,10 +32,10 @@ const App = (props) => {
     const isSavedState = useSelector(state=>state.content.isSavedState)
     const [popout, setPopout] = useState(null)
     let isDesktop = window.location.search.indexOf('desktop_web')!==-1
+    bridge.send("VKWebAppInit")
 
 
     useEffect(() => {
-        bridge.send("VKWebAppInit")
         const vkEvents = e => {
             switch(e.detail.type) {
                 case 'VKWebAppCopyTextResult':
@@ -83,10 +82,10 @@ const App = (props) => {
     }, [user_server]);
 
     useEffect(() => {
-        dispatch(setVkSaidParams({...network_user_object}))
+        dispatch(setVkSaidParams(user_info))
         history.scrollRestoration = 'manual';
         window.history.scrollRestoration = 'manual';
-        if (!network_user_object.user_server.isCitySupport) {
+        if (!user_info.user_server.isCitySupport) {
             dispatch(setPopoutView(
                 <Alert
                     onClose={()=>dispatch(setPopoutView(null))}
