@@ -1,5 +1,5 @@
 import React from "react";
-import {setCenterSaidParams} from "../../state/reducers/content/actions";
+import {setContentSaidParams} from "../../state/reducers/content/actions";
 import {useDispatch} from "react-redux";
 import {Card, Div, List, ScreenSpinner, SimpleCell} from "@vkontakte/vkui";
 import Icon24Place from '@vkontakte/icons/dist/24/place';
@@ -13,9 +13,10 @@ import NakedImage from "../NakedImage";
 import CenterHeader from "../CenterHeader";
 import HideMore from "../HideMore";
 import PostActionsBottom from "../PostActionsBottom";
+import PhotoViewer from "../PhotoViewer";
 // todo transferal to react-table
 const FeedSnippet = (props) => {
-    const { center } = props;
+    const { isDesktop, center,centers,data_offset } = props;
     const dispatch = useDispatch();
 
     return (
@@ -26,18 +27,23 @@ const FeedSnippet = (props) => {
                     stars={Math.abs(center.stars.medium)}
                     actual={center.actual}
                     avatar={center.avatar}
-                    onClick={() => abstractVkBridge('VKWebAppCopyText', {'text': center.data.name})}
-                    onClickAvatar={()=>{
-                        dispatch(setCenterSaidParams({ center:center }));
+                    onClickNative={()=>{
+                        localStorage.setItem('data_offset',data_offset)
+                        localStorage.setItem('centers',JSON.stringify(centers))
+                        localStorage.setItem('sroll-prev-find', window.scrollY)
+                        dispatch(setContentSaidParams({ center:center,isSavedState: true}));
                         dispatch(setActiveView({ panelId:POST_PANEL, viewId:POST_VIEW }))
                     }}
                 >{center.data.name}</CenterHeader>
                 {/** Content block **/}
                 <List>
                     {/** Map icon **/}
-                    <SimpleCell multiline before={<Icon24Place fill={'var(--text_link'}/>}
+                    <SimpleCell style={{cursor: 'pointer'}} multiline before={<Icon24Place fill={'var(--text_link'}/>}
                           onClick={()=>{
-                              dispatch(setCenterSaidParams({center:center }));
+                              localStorage.setItem('data_offset',data_offset)
+                              localStorage.setItem('centers',JSON.stringify(centers))
+                              localStorage.setItem('sroll-prev-find', window.scrollY)
+                              dispatch(setContentSaidParams({center:center,isSavedState: true}));
                               dispatch(setActiveView({panelId:MAPVIEW_PANEL,viewId:POST_VIEW}))
                               dispatch(setPopoutView(<ScreenSpinner />))
                           }}
@@ -51,10 +57,13 @@ const FeedSnippet = (props) => {
                         : null}
                     {/** Image block **/}
                     {/** todo Чето сделать с referrer policy **/}
-                    {center.image && <NakedImage url={center.image[0]} size={140} onClick={()=>abstractVkBridge('VKWebAppShowImages', {images:center.image})}/>}
+                    {center.image && <NakedImage url={center.image[0]} size={140} onClick={()=>
+                        isDesktop ?
+                            dispatch(setPopoutView(<PhotoViewer images={center.image} />)) :
+                            abstractVkBridge('VKWebAppShowImages', {images:center.image})}/>}
                 </List>
                 {/** Action block **/}
-                <PostActionsBottom center={center} isPost />
+                <PostActionsBottom center={center} centers={centers} data_offset={data_offset} isPost />
             </Card>
         </Div>
     );

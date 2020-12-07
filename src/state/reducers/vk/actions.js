@@ -42,12 +42,12 @@ export const fetchServerSupports = (city) =>
     axios.get(`${MAIN_SERVER_URL}/users/supports`, {params:{
             city:city,
             vk_start_params:window.location.search
-        }})
+        },timeout: 5000})
 export const fetchServerUser = () =>
     axios.get(`${MAIN_SERVER_URL}/users/info`, {params:{
             vk_start_params:window.location.search
-        }})
-export const sendRequest = (type, params, cb) => dispatch =>{
+        },timeout: 5000})
+export const sendRequest = (type, params, cb) => {
     axios.post(`${MAIN_SERVER_URL}/centers/requests`, {
         type:type,
         params:params,
@@ -55,7 +55,7 @@ export const sendRequest = (type, params, cb) => dispatch =>{
     })
         .then(({data})=>{
             if (cb) cb(data)
-        });
+        },err=>cb ? cb(undefined,err) : null);
 }
 /** For popout props **/
 export const setPopoutView = (popout) => ({
@@ -67,7 +67,7 @@ export const setSnackBar = (snackbar) => ({
     payload: {snackbar:snackbar},
 });
 
-export const setPreviousModal = () =>{
+export const setPreviousModal = (forward) =>{
     return (dispatch, getState) => {
         const state = getState();
         const { modalHistory } = state.vk;
@@ -76,16 +76,15 @@ export const setPreviousModal = () =>{
         if (modalHistory.length!==1) newHistory = modalHistory.slice(0, modalHistory.length - 1)
         else newHistory = [null]
 
-        // console.log(modalHistory,newHistory)
-        let scroller = window.scrollY;
-        window.history.pushState({ panel: state.history.panelId, view:state.history.activeView,scrollHeight:scroller }, `${state.history.activeView}/${state.history.panelId}`)
-        // window.scrollTo(0,scroller)
+        if (forward) window.history.pushState({ panel: state.history.panelId, view:state.history.activeView,scrollHeight:window.scrollY }, `${state.history.activeView}/${state.history.panelId}`)
+
         dispatch({
             type: types.SET_SAID_PARAMS,
             payload: {modal:newHistory[newHistory.length-1], modalHistory:newHistory},
         })
     };
 }
+
 export const setModalView = (modal) => {
     return (dispatch, getState) => {
         const state = getState();
@@ -120,14 +119,13 @@ export const sendUserChanges = (user) =>
         user:user,
         vk_start_params:window.location.search
     })
-export const fetchCities = (input, cb, limit=10,offset=0) => {
+export const fetchCities = (input, limit=10,offset=0) =>
     axios.get(`${MAIN_SERVER_URL}/centers/cities`, {params:{
-            q:input,
-            limit:limit,
-            offset:offset,
-            vk_start_params:window.location.search
-        }}).then(({data})=> cb ? cb(data) : null)
-}
+        q:input,
+        limit:limit,
+        offset:offset,
+        vk_start_params:window.location.search
+    }})
 export const appShowWallPostBox = (center,photo) =>{
     bridge.send('VKWebAppShowWallPostBox', {
         message: `Я хожу в ${center.data.name}!`,

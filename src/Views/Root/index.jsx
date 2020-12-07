@@ -1,11 +1,10 @@
 import React, {useRef, useState} from "react";
 import {
     Button,
-    Div,
+    Checkbox,
     Epic,
     FormLayout,
     FormStatus,
-    Group,
     Input,
     List,
     ModalCard,
@@ -13,7 +12,6 @@ import {
     ModalPageHeader,
     ModalRoot,
     PanelHeaderButton,
-    Radio,
     SelectMimicry,
     SimpleCell,
     Snackbar,
@@ -46,45 +44,41 @@ import Icon24ServicesOutline from '@vkontakte/icons/dist/24/services_outline';
 import Board from "../../Panels/Root/Board";
 import CitySelection from "../../Panels/Root/Mimicry/CitySelection";
 import Icon24StatisticsOutline from '@vkontakte/icons/dist/24/statistics_outline';
-import {setCenterSaidParams} from "../../state/reducers/content/actions";
 import Icon24Done from "@vkontakte/icons/dist/24/done";
 import Likes from "../../Panels/Root/Profile/Likes";
 import Reviewed from "../../Panels/Root/Profile/Reviewed";
 import {categories} from "../../Components/renderUtils";
 import {ROOT_VIEW} from "../../constants/View";
 import Changes from "../../Panels/Root/Profile/Changes";
+import {setContentSaidParams} from "../../state/reducers/content/actions";
+import Icon20CancelCircleFillRed from "@vkontakte/icons/dist/20/cancel_circle_fill_red";
 
 const MainView = (props) => {
-    const { id } = props;
+    const { id, isDesktop } = props;
     const dispatch = useDispatch();
     const activePanel = useSelector((state) => state.history.activePanel);
+    const center = useSelector(state=>state.content.center)
     const history = useSelector((state) => state.history.history.filter(h=>h.viewId===ROOT_VIEW).map(h=>h.panelId));
     const popout = useSelector(state=>state.vk.popout);
     const modal = useSelector((state)=>state.vk.modal);
     const groupInputRef = useRef(null);
     const [formError, setFormError] = useState(null);
-    const activeCategory = useSelector(state=>state.content.activeCategory);
-
-
-    const onClickCategory = (txt) => {
-        window.scrollTo(0,0);
-        dispatch(setCenterSaidParams({activeCategory:txt}))
-    };
+    const [formChecked, setFormChecked] = useState(useSelector(state=>state.content.categories))
 
     const modalPages = (
         <ModalRoot activeModal={modal} onClose={()=>dispatch(setPreviousModal())}>
             <ModalPage
                 id={MODAL_FILTER}
                 header={<ModalPageHeader
-                        right={<PanelHeaderButton onClick={()=>dispatch(setPreviousModal())}>
-                            <Icon24Done />
-                        </PanelHeaderButton>}>Фильтры</ModalPageHeader>}
+                    right={<PanelHeaderButton onClick={()=>dispatch(setPreviousModal())}>
+                        <Icon24Done fill={'var(--accent)'} onClick={()=>dispatch(setPreviousModal())}/>
+                    </PanelHeaderButton>}>Фильтры</ModalPageHeader>}
             >
                 <FormLayout Component={'div'}>
                     <List>
                         <SelectMimicry top={'Категория'} placeholder={'Выбрать категорию'}
                                        onClick={()=>dispatch(setModalView(MODAL_FILTER_CATEGORIES))}>
-                            {activeCategory}
+                            {formChecked.join(', ')}
                         </SelectMimicry>
                         <div style={{paddingBottom:10}} />
                     </List>
@@ -95,19 +89,27 @@ const MainView = (props) => {
                 onClose={()=>dispatch(setPreviousModal())}
                 header={<ModalPageHeader
                     right={<PanelHeaderButton onClick={()=>dispatch(setPreviousModal())}>
-                        <Icon24Done />
-                    </PanelHeaderButton>}>Выберите категорию</ModalPageHeader>}
+                        <Icon24Done fill={'var(--accent)'} onClick={()=>{
+                            dispatch(setContentSaidParams({categories:formChecked}))
+                            dispatch(setPreviousModal())
+                        }}/>
+                    </PanelHeaderButton>}>Выберите категории</ModalPageHeader>}
             >
-                <Group>
-                    {activeCategory !== '' &&
-                    <Div style={{display:'flex'}}>
-                        <Button onClick={()=>onClickCategory('')} size={'l'} stretched mode={'destructive'}>Очистить</Button>
-                    </Div>}
+                <FormLayout Component={'div'}>
+                    {formChecked.length === 0 ? <div style={{display:'flex'}}><Button disabled size={'l'} stretched mode={'destructive'}>Очистить</Button></div> :
+                        <div style={{display:'flex'}}>
+                            <Button onClick={()=>{
+                                setFormChecked([])
+                            }} size={'l'} stretched mode={'destructive'}>Очистить</Button>
+                        </div>}
                     {categories.map((cat,key)=>(
-                        <Radio key={key} value={cat} checked={activeCategory===cat}
-                               onChange={(e)=>onClickCategory(e.target.value)}>{cat}</Radio>
+                        formChecked.some(item=>item===cat) ?
+                            <Checkbox key={key} checked={true} value={cat}
+                                      onChange={(e)=>setFormChecked(formChecked.filter(item=>item!==e.target.value))}>{cat}</Checkbox> :
+                            <Checkbox key={key} value={cat} checked={false}
+                                      onChange={(e)=>setFormChecked([...formChecked,e.target.value])}>{cat}</Checkbox>
                     ))}
-                </Group>
+                </FormLayout>
             </ModalPage>
             <ModalCard
                 id={MODAL_CARD_OWNER}
@@ -120,15 +122,27 @@ const MainView = (props) => {
                         action: ()=>{
                             if (groupInputRef.current.value && /^(https:\/\/|)vk\.com\/.+/i.test(groupInputRef.current.value)) {
                                 dispatch(setPreviousModal())
-                                dispatch(sendRequest(1, {vk_group:groupInputRef.current.value}))
-                                dispatch(setVkSaidParams({snackbar: (
-                                        <Snackbar
-                                            duration={2000}
-                                            layout="vertical"
-                                            onClose={() =>dispatch(setVkSaidParams({snackbar: null}))}
-                                            before={<Icon16DoneCircle fill={'var(--accent)'} />}
-                                        >Ваша заявка отправлена</Snackbar>
-                                    )}))
+                                sendRequest(1, {vk_group:groupInputRef.current.value,id:center.id},(data,err)=>{
+                                    if (!err) {
+                                        dispatch(setVkSaidParams({snackbar: (
+                                                <Snackbar
+                                                    duration={2000}
+                                                    layout="vertical"
+                                                    onClose={() =>dispatch(setVkSaidParams({snackbar: null}))}
+                                                    before={<Icon16DoneCircle fill={'var(--accent)'} />}
+                                                >Ваша заявка отправлена</Snackbar>
+                                            )}))
+                                    } else {
+                                        dispatch(setVkSaidParams({snackbar: (
+                                                <Snackbar
+                                                    duration={2000}
+                                                    layout="vertical"
+                                                    onClose={() =>dispatch(setVkSaidParams({snackbar: null}))}
+                                                    before={<Icon20CancelCircleFillRed />}
+                                                >{err.response ? err.response.data : err.message==='Network Error' ? 'Сетевая ошибка, повторите попытку' : err.message}</Snackbar>
+                                            )}))
+                                    }
+                                })
                             } else {
                                 setFormError(
                                     <FormStatus header="Некорректное заполнение формы" mode="error">
@@ -172,10 +186,10 @@ const MainView = (props) => {
                     onClick={()=>dispatch(setActivePanel(RATING_PANEL))}
                 ><Icon24StatisticsOutline fill={activePanel === RATING_PANEL ? 'var(--text_link)' : null}/></TabbarItem>
                 <TabbarItem
-                    selected={activePanel === PROFILE_PANEL}
+                    selected={[CITY_SELECTION_PANEL,PROFILE_PANEL,REVIEWED_CENTERS_PANEL,LIKED_CENTERS_PANEL,CHANGED_CENTERS_PANEL].some(pnl=>pnl===activePanel)}
                     text="Профиль"
                     onClick={()=>dispatch(setActivePanel(PROFILE_PANEL))}
-                ><Icon28UserCircleOutline fill={activePanel === PROFILE_PANEL ? 'var(--text_link)' : null}/></TabbarItem>
+                ><Icon28UserCircleOutline fill={[PROFILE_PANEL,REVIEWED_CENTERS_PANEL,LIKED_CENTERS_PANEL,CHANGED_CENTERS_PANEL,CITY_SELECTION_PANEL].some(pnl=>pnl===activePanel) ? 'var(--text_link)' : null}/></TabbarItem>
             </Tabbar>
         }>
             <View
@@ -187,7 +201,7 @@ const MainView = (props) => {
                 onSwipeBack={()=>dispatch(setPreviousPanel())}
                 // onTransition={(obj)=>console.log(obj)}
             >
-                <Find id={FIND_PANEL} />
+                <Find id={FIND_PANEL} categories={formChecked} isDesktop={isDesktop} />
                 <Rating id={RATING_PANEL} />
                 <Profile id={PROFILE_PANEL} />
                 <Likes id={LIKED_CENTERS_PANEL} />

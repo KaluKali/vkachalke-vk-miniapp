@@ -14,7 +14,7 @@ export const setActivePanel = (panelId,needSave=true) => {
     if (state.vk.snackbar) {
       dispatch(setVkSaidParams({snackbar:null}))
     }
-    if (needSave) window.history.pushState({ panel: panelId, view:activeView, scrollHeight:document.body.scrollHeight }, `${activeView}/${panelId}`);
+    if (needSave) window.history.pushState({ panel: panelId, view:activeView }, `${activeView}/${panelId}`);
     dispatch({
       type: types.SET_ACTIVE_PANEL,
       payload: { panelId: panelId, viewId: activeView, needSave:needSave },
@@ -31,7 +31,7 @@ export const setActiveView = ({ panelId, viewId }) => {
     if (state.vk.snackbar) {
       dispatch(setVkSaidParams({snackbar:null}))
     }
-    window.history.pushState({ panel: panelId, view:viewId, scrollHeight:document.body.scrollHeight }, `${viewId}/${panelId}`);
+    window.history.pushState({ panel: panelId, view:viewId }, `${viewId}/${panelId}`);
     dispatch({
       type: types.SET_ACTIVE_VIEW,
       payload: { panelId:panelId, viewId:viewId, history:{panelId: panelId, viewId: viewId }},
@@ -39,16 +39,19 @@ export const setActiveView = ({ panelId, viewId }) => {
   }
 };
 
-export const setPreviousPanel = () => {
+export const setPreviousPanel = (forward) => {
   return (dispatch, getState) => {
     const state = getState();
     const { history } = state.history;
 
     if (state.vk.popout) {
-      return dispatch(setPopoutView(null))
+      if (forward) window.history.pushState({ panel: state.history.panelId, view:state.history.activeView,scrollHeight:window.scrollY }, `${state.history.activeView}/${state.history.panelId}`)
+      if (state.vk.popout.type.name !== 'ScreenSpinner') {
+        return dispatch(setPopoutView(null))
+      } else return;
     }
     if (state.vk.modal) {
-      return dispatch(setPreviousModal())
+      return dispatch(setPreviousModal(forward))
     }
     if (state.vk.snackbar) {
       dispatch(setVkSaidParams({snackbar:null}))

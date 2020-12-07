@@ -3,7 +3,7 @@ import {Footer, Panel, PanelHeader, PanelHeaderBack, Spinner} from "@vkontakte/v
 import PropTypes from "prop-types";
 import {handleToPreviousPanel} from "../../../../core/HistoryDispatcher";
 import {useDispatch} from "react-redux";
-import {fetchLikedCenters, setCenterSaidParams} from "../../../../state/reducers/content/actions";
+import {fetchLikedCenters, setContentSaidParams} from "../../../../state/reducers/content/actions";
 import CenterHeader from "../../../../Components/CenterHeader";
 import {setActiveView} from "../../../../state/reducers/history/actions";
 import {POST_PANEL} from "../../../../constants/Panel";
@@ -33,8 +33,8 @@ const Likes = (props) => {
                     actual={center.actual}
                     avatar={center.avatar}
                     caption={center.data.info.address}
-                    onClick={()=>{
-                        dispatch(setCenterSaidParams({ center:center }));
+                    onClickNative={()=>{
+                        dispatch(setContentSaidParams({ center:center }));
                         dispatch(setActiveView({ panelId:POST_PANEL, viewId:POST_VIEW }))
                     }}
                 >{center.data.name}</CenterHeader>) : <Footer>{fetching ?<Spinner/>  : 'Вы не поставили отметку ни на одно заведение'}</Footer>}

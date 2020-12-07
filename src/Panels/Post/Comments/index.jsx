@@ -55,10 +55,12 @@ import {EDITOR_VIEW, POST_VIEW} from "../../../constants/View";
 import Icon24List from "@vkontakte/icons/dist/24/list";
 import HideMore from "../../../Components/HideMore";
 import PostActionsBottom from "../../../Components/PostActionsBottom";
+import Icon20CancelCircleFillRed from '@vkontakte/icons/dist/20/cancel_circle_fill_red';
+import PhotoViewer from "../../../Components/PhotoViewer";
 
 
 const Comment = (props) => {
-    const { id } = props;
+    const { id,isDesktop } = props;
     const dispatch = useDispatch();
     const platform = usePlatform();
     const scheme = useSelector(state =>state.vk.scheme);
@@ -92,15 +94,27 @@ const Comment = (props) => {
                                                 Удалить
                                             </ActionSheetItem> :
                                             <ActionSheetItem autoclose mode='destructive' onClick={()=>{
-                                                dispatch(sendRequest(2, {id:cmt.id}))
-                                                dispatch(setVkSaidParams({snackbar: (
-                                                        <Snackbar
-                                                            duration={2000}
-                                                            layout="vertical"
-                                                            onClose={() =>dispatch(setVkSaidParams({snackbar: null}))}
-                                                            before={<Icon16DoneCircle fill={'var(--accent)'} />}
-                                                        >Ваша жалоба отправлена, мы проверим комментарий и сообщим о результатах.</Snackbar>
-                                                    )}))
+                                                sendRequest(2, {comment_id:cmt.id}, (data,err)=>{
+                                                    if (!err) {
+                                                        dispatch(setVkSaidParams({snackbar: (
+                                                                <Snackbar
+                                                                    duration={2000}
+                                                                    layout="vertical"
+                                                                    onClose={() =>dispatch(setVkSaidParams({snackbar: null}))}
+                                                                    before={<Icon16DoneCircle fill={'var(--accent)'} />}
+                                                                >Ваша жалоба отправлена, мы проверим комментарий и сообщим о результатах.</Snackbar>
+                                                            )}))
+                                                    } else {
+                                                        dispatch(setVkSaidParams({snackbar: (
+                                                                <Snackbar
+                                                                    duration={2000}
+                                                                    layout="vertical"
+                                                                    onClose={() =>dispatch(setVkSaidParams({snackbar: null}))}
+                                                                    before={<Icon20CancelCircleFillRed fill={'var(--accent)'} />}
+                                                                >{err.response.data}</Snackbar>
+                                                            )}))
+                                                    }
+                                                })
                                             }}>Пожаловаться</ActionSheetItem>
                                         }
                                         {/*<ActionSheetItem autoclose mode='default' onClick={()=>{*/}
@@ -122,6 +136,7 @@ const Comment = (props) => {
                             <div style={{display:'flex'}}>
                                 {cmt.image.map((img, key)=>(
                                     <div key={key} style={{paddingRight: 8}}><Avatar mode={'image'} size={72} src={img} onClick={()=>{
+                                        isDesktop ? dispatch(setPopoutView(<PhotoViewer images={[img, ...cmt.image.filter((_,k)=>k!==key)]}/>)) :
                                         abstractVkBridge('VKWebAppShowImages', {images:[img, ...cmt.image.filter((_,k)=>k!==key)]})
                                     }}/></div>
                                 ))}
@@ -151,8 +166,8 @@ const Comment = (props) => {
                             bullets={scheme === 'space_gray' ? 'light' : 'dark'}
                         >
                             { center.image.map((img_url,key)=><NakedImage onClick={()=>{
-                                abstractVkBridge('VKWebAppShowImages', {images:[img_url,...center.image.filter((_,k)=>k!==key)]})
-                            }} key={key} url={img_url} size={180} />) }
+                                !isDesktop && abstractVkBridge('VKWebAppShowImages', {images:[img_url,...center.image.filter((_,k)=>k!==key)]})
+                            }} key={key} url={img_url} />) }
                         </Gallery>
                         : <Placeholder
                             icon={<Icon56CameraOffOutline />}
@@ -179,7 +194,7 @@ const Comment = (props) => {
                                 </HideMore>
                                 : null}
                             {/** Other content **/}
-                            {Object.keys(center.data.info).map((info,key)=>socialInfoTypes(info, key, center))}
+                            {Object.keys(center.data.info).map((info,key)=>socialInfoTypes(info, key, center,isDesktop))}
                         </List>
                         {/** Details icon **/}
                         {center.data.capabilities.length ?

@@ -51,6 +51,7 @@ const Board = (props) => {
                         subheader="Ищите спорт в вашем городе"
                         background={<div className={'find'}/>}
                         actions={<Button
+                            style={{cursor: 'pointer'}}
                             mode="overlay_primary"
                             size="l"
                             onClick={()=>dispatch(setActivePanel(FIND_PANEL))}

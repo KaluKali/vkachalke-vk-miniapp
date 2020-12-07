@@ -1,110 +1,170 @@
-import 'core-js/features/map';
-import 'core-js/features/set';
-import React, {Suspense} from "react";
+import "core-js/features/map";
+import "core-js/features/set";
+import React, {useEffect, useState} from "react";
 import ReactDOM from "react-dom";
 import {Provider} from "react-redux";
 import './styles/index.scss';
 import '@vkontakte/vkui/dist/vkui.css';
 import store from "./state";
 import App from "./core/App";
-import * as Sentry from "@sentry/react";
-import {Integrations} from "@sentry/tracing";
 import bridge from "@vkontakte/vk-bridge";
 import {fetchServerSupports, fetchServerUser} from "./state/reducers/vk/actions";
 import {Spinner} from "@vkontakte/vkui";
+// import usePromise from "react-promise-suspense";
 // import('scroll-restoration-polyfill');
 
-Sentry.init({
-    dsn: "https://f8c9977da1fc4eaaa5660cb17643b50b@o481121.ingest.sentry.io/5529172",
-    integrations: [
-        new Integrations.BrowserTracing(),
-    ],
+// Sentry.init({
+//     dsn: "https://f8c9977da1fc4eaaa5660cb17643b50b@o481121.ingest.sentry.io/5529172",
+//     integrations: [
+//         new Integrations.BrowserTracing(),
+//     ],
+//
+//     // We recommend adjusting this value in production, or using tracesSampler
+//     // for finer control
+//     tracesSampleRate: 1.0,
+// });
 
-    // We recommend adjusting this value in production, or using tracesSampler
-    // for finer control
-    tracesSampleRate: 1.0,
-});
+// import("./eruda").then(({ default: eruda }) => {}); //runtime download
 
 // if (process.env.NODE_ENV === "development") {
 //     import("./eruda").then(({ default: eruda }) => {}); //runtime download
 // }
 
-
-// function once(target, type, listener, useCapture) {
-//     target.addEventListener(type, listener, useCapture);
-//     target.addEventListener(type, function selfRemoving() {
-//         target.removeEventListener(type, listener, useCapture);
-//         target.removeEventListener(type, selfRemoving, useCapture);
-//     }, useCapture);
-// }
+// class ErrorBoundary extends React.Component {
+//     constructor(props) {
+//         super(props);
+//         this.state = { hasError: false };
+//     }
 //
-// once.promise = function (target, type, useCapture) { return new Promise(function (resolve) { return once(target, type, resolve, useCapture); }); };
+//     static getDerivedStateFromError(error) {
+//         console.log(error)
+//         // Обновить состояние с тем, чтобы следующий рендер показал запасной UI.
+//         return { hasError: true };
+//     }
 //
-// // import once from 'one-event';
-// import { getScrollTop, getScrollLeft } from 'get-scroll';
+//     // componentDidCatch(error, errorInfo) {
+//     //     // Можно также сохранить информацию об ошибке в соответствующую службу журнала ошибок
+//     // }
 //
-// var state = 'auto';
-//
-// function waitForScroll() {
-//     once(window, 'scroll',scrollTo.bind(window, getScrollLeft(), getScrollTop()));
-// }
-//
-// Object.defineProperty(history, 'scrollRestoration', {
-//     enumerable: true,
-//     get: function () { return state; },
-//     set: function (requestedState) {
-//         if (requestedState === state) {
-//             return;
+//     render() {
+//         if (this.state.hasError) {
+//             // Можно отрендерить запасной UI произвольного вида
+//             return <h1>Что-то пошло не так.</h1>;
 //         }
-//         if (requestedState === 'auto') {
-//             window.removeEventListener('popstate', waitForScroll);
-//             state = requestedState;
-//         } else if (requestedState === 'manual') {
-//             window.addEventListener('popstate', waitForScroll);
-//             state = requestedState;
+//
+//         return this.props.children;
+//     }
+// }
+
+// function useResource() {
+//     return {
+//         user_info:wrapPromise(bridge.send('VKWebAppGetUserInfo').then(user=>user), fetchServerUser().then(({data})=>data)),
+//     }
+// }
+// function wrapPromise(promise_bridge, promise_server) {
+//     let status = 'pending'
+//     let result;
+//
+//     // const user = usePromise(promise_bridge)
+//     // const user_server = usePromise(promise_server)
+//     let suspender = Promise.all([promise_bridge, promise_server])
+//         .then(data=>{
+//             let user = data[0]
+//             let user_server = data[1]
+//
+//             console.log(user)
+//             console.log(user_server)
+//
+//             if (!user_server.city) {
+//                 if (user.city.title==="") {
+//                     user_server.city='Test'
+//                     user_server.isCitySupport=false
+//                     result={user,user_server}
+//                     status = 'success'
+//                 } else {
+//                     fetchServerSupports(user.city.title)
+//                         .then(({data})=>{
+//                             user_server.city=user.city.title
+//                             user_server.isCitySupport=data.city
+//                             result={user,user_server}
+//                             status = 'success'
+//                         },err=>{
+//                             result={user_server:{city:'Test',isCitySupport:false},user:user}
+//                             status = 'error'
+//                         })
+//                 }
+//             } else {
+//                 result={user,user_server}
+//                 result.user_server.isCitySupport=true
+//                 status = 'success'
+//             }
+//         }, err=>{
+//             result={user_server:{city:'Test',isCitySupport:false},user:{}}
+//             status = 'error'
+//         })
+//     return {
+//         read() {
+//             if (status==='pending') {
+//                 throw suspender
+//             } else if (status === 'error') {
+//                 throw result
+//             } else {
+//                 return result
+//             }
 //         }
 //     }
-// });
+// }
 
+const AppSuspense = () => {
+    const [userInfo,setUserInfo] = useState(null)
 
-function useResource() {
-    return {
-        user_info:wrapPromise(bridge.send('VKWebAppGetUserInfo'), fetchServerUser().then(({data})=>data))
-    }
+    useEffect(()=>{
+        let result;
+        Promise.all([bridge.send('VKWebAppGetUserInfo').then(user=>user), fetchServerUser().then(({data})=>data)])
+            .then(data=>{
+                let user = data[0]
+                let user_server = data[1]
+
+                console.log(user)
+                console.log(user_server)
+
+                if (!user_server.city) {
+                    if (user.city.title==="") {
+                        user_server.city='Test'
+                        user_server.isCitySupport=false
+                        result={user,user_server}
+                        setUserInfo(result)
+                    } else {
+                        fetchServerSupports(user.city.title)
+                            .then(({data})=>{
+                                user_server.city=user.city.title
+                                user_server.isCitySupport=data.city
+                                result={user,user_server}
+                                setUserInfo(result)
+                            },err=>{
+                                result={user_server:{city:'Test',isCitySupport:false},user:user}
+                                setUserInfo(result)
+                            })
+                    }
+                } else {
+                    result={user,user_server}
+                    result.user_server.isCitySupport=true
+                    setUserInfo(result)
+                }
+            }, err=>{
+                result={user_server:{city:'Test',isCitySupport:false},user:{}}
+                setUserInfo(result)
+            })
+    },[])
+
+    return (
+        userInfo ? <App user_info={userInfo} /> : <Spinner />
+    )
 }
-function wrapPromise(promise_bridge, promise_server) {
-    let status = 'pending'
-    let result;
 
-    const suspender = Promise.all([promise_bridge, promise_server])
-        .then(data=>{
-            result = data[1].city ? {user:data[0], user_server:data[1]} : {user:data[0], user_server:{...data[1], city:data[0].city.title}}
-            fetchServerSupports(result.user_server.city)
-                .then(({data})=>{
-                    result.user_server.isCitySupport=data.city
-                    status = 'success'
-                })
-        }, err=>{
-            status = 'error'
-            result=err
-        })
-    return {
-        read() {
-            if (status==='pending') {
-                throw suspender
-            } else if (status === 'error') {
-                throw result
-            } else {
-                return result
-            }
-        }
-    }
-}
 ReactDOM.render(
     <Provider store={store}>
-        <Suspense fallback={<Spinner />}>
-            <App user_info={useResource().user_info} />
-        </Suspense>
+        <AppSuspense />
     </Provider>,
     document.getElementById("root")
 );

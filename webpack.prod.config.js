@@ -3,6 +3,7 @@ const TerserPlugin = require('terser-webpack-plugin');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const { UnusedFilesWebpackPlugin } = require('unused-files-webpack-plugin');
 const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
+const DeleteSourceMapWebpackPlugin = require('delete-sourcemap-webpack-plugin')
 
 // process.env.NODE_ENV = 'production';
 
@@ -28,6 +29,7 @@ module.exports = require('./webpack.config')({
     ],
   },
   plugins: [
+    new DeleteSourceMapWebpackPlugin(),
     new CleanWebpackPlugin(),
     new HtmlWebpackPlugin({
       template: 'public/index.html',

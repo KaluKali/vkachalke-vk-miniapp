@@ -4,7 +4,7 @@ import PropTypes from "prop-types";
 import {handleToPreviousPanel} from "../../../../core/HistoryDispatcher";
 import {useDispatch} from "react-redux";
 import CenterHeader from "../../../../Components/CenterHeader";
-import {fetchChangedCenters, setCenterSaidParams} from "../../../../state/reducers/content/actions";
+import {fetchChangedCenters, setContentSaidParams} from "../../../../state/reducers/content/actions";
 import {setActiveView} from "../../../../state/reducers/history/actions";
 import {POST_PANEL} from "../../../../constants/Panel";
 import {POST_VIEW} from "../../../../constants/View";
@@ -25,7 +25,7 @@ const Changes = (props) => {
 
     return (
         <Panel id={id}>
-            <PanelHeader left={<PanelHeaderBack onClick={() => handleToPreviousPanel(dispatch)} />}>Отзывы</PanelHeader>
+            <PanelHeader left={<PanelHeaderBack onClick={() => handleToPreviousPanel(dispatch)} />}>Изменения мест</PanelHeader>
             {centers.length ? centers.map((center)=>
                 <CenterHeader
                     key={center.id}
@@ -33,8 +33,8 @@ const Changes = (props) => {
                     actual={center.actual}
                     avatar={center.avatar}
                     caption={center.data.info.address}
-                    onClick={()=>{
-                        dispatch(setCenterSaidParams({ center:center }));
+                    onClickNative={()=>{
+                        dispatch(setContentSaidParams({ center:center }));
                         dispatch(setActiveView({ panelId:POST_PANEL, viewId:POST_VIEW }))
                     }}
                 >{center.data.name}</CenterHeader>) : <Footer>{fetching ? <Spinner/>  : 'У вас нет подтвержденных изменений заведения'}</Footer>}

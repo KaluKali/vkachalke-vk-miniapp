@@ -2,12 +2,13 @@ import * as types from './types';
 
 const initialState = {
   active_post_index:0,
+  isSavedState:false,
   active_post_comments:{ content:[], commented:-1 },
   item_offset:0,
   centers:[],
   center:{},
   hasMore:true,
-  activeCategory:'',
+  categories:[],
   filter_search:'',
   feed:[]
 };

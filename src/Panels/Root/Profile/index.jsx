@@ -40,7 +40,7 @@ const Profile = (props) => {
             <PanelHeader>Профиль</PanelHeader>
             <PullToRefresh isFetching={fetching} onRefresh={()=>setFetching(true)}>
                 <div style={{ display: 'flex', alignItems: 'center', flexDirection: 'column', marginTop:'20px' }}>
-                    <Avatar size={100} src={user.photo_100} shadow={false}>
+                    <Avatar size={100} src={user.photo_200} shadow={false}>
                         <Icon28PaletteOutline className={'withCircle'} fill={'var(--text_link)'} style={{order: 999,marginLeft:'auto', marginBottom:'auto'}}
                                            onClick={()=>dispatch(changeScheme(scheme, true))} />
                     </Avatar>

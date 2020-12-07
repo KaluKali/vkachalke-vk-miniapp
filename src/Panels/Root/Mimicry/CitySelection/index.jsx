@@ -19,10 +19,14 @@ const CitySelection = (props) => {
         debounce(() => {
             if (searchRef) {
                 if (searchRef.current.value !== '') {
-                    fetchCities(searchRef.current.value, (data)=>{
-                        setLoadState(false)
-                        setCities(data)
-                    })
+                    fetchCities(searchRef.current.value)
+                        .then(({data})=>{
+                            setLoadState(false)
+                            setCities(data)
+                        },err=>{
+                            setLoadState(false)
+                            setCities([])
+                        })
                     window.scrollTo(0,0);
                 } else {
                     window.scrollTo(0,0);
@@ -46,8 +50,8 @@ const CitySelection = (props) => {
             <Group>
                 {loadState ? <Spinner/> :
                     <List>
-                        {!cities.length && searchRef.current && typeof searchRef.current.value === 'string' ? <Footer>Ничего не найдено</Footer> : null}
-                        {!cities.length && !searchRef.current ? <Footer>Здесь будут результаты поиска</Footer> : null}
+                        {!cities.length && searchRef.current && typeof searchRef.current.value === 'string' && searchRef.current.value.length ? <Footer>Ничего не найдено</Footer> : null}
+                        {!cities.length && !searchRef.current || searchRef.current && typeof searchRef.current.value === 'string' && !searchRef.current.value.length ? <Footer>Здесь будут результаты поиска</Footer> : null}
                         {cities.map((city,key)=>(
                             <SimpleCell key={key}
                                   onClick={()=>{

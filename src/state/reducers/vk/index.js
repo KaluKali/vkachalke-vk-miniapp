@@ -5,6 +5,7 @@ const initialState = {
   popout:null,
   modal:null,
   modalHistory:[null],
+  popoutHistory:[null],
   snackbar:null,
   scheme:'bright_light',
   user_server:{
@@ -36,7 +37,7 @@ const vkReducer = (state = initialState, action) => {
     case types.SET_SERVER_USER:
       return {
         ...state,
-        user_server: action.payload.city ? {...state.user_server, ...action.payload} : {...state.user_server, ...{...action.payload, city:state.user.city.title}}
+        user_server: action.payload.city ? {...state.user_server, ...action.payload} : {...state.user_server, ...{...action.payload, city:state.user.city.title==='' || !state.user.city.title ? 'Test' : state.user.city.title}}
       };
     case types.SET_SAID_PARAMS:
       return {

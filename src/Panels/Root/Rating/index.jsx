@@ -3,7 +3,7 @@ import {Footer, Panel, PanelHeader, Spinner} from "@vkontakte/vkui";
 import PropTypes from "prop-types";
 import {useDispatch, useSelector} from "react-redux";
 import InfiniteScroll from "react-infinite-scroll-component";
-import {fetchRatingCenters, setCenterSaidParams} from "../../../state/reducers/content/actions";
+import {fetchRatingCenters, setContentSaidParams} from "../../../state/reducers/content/actions";
 import CenterHeader from "../../../Components/CenterHeader";
 import {setActiveView} from "../../../state/reducers/history/actions";
 import {POST_PANEL} from "../../../constants/Panel";
@@ -19,14 +19,14 @@ const Rating = (props) => {
     const [centers, setCenters] = useState([])
 
     useEffect(()=>{
-        fetchRatingCenters(user_city,10,0,({data}, err)=>{
-            if (!err) {
+        fetchRatingCenters(user_city,10,0)
+            .then(({data})=>{
                 setCenters(data)
                 !data.length && setHasMore(false)
-            } else {
+            },err=>{
+                console.log(err)
                 setHasMore(false)
-            }
-        })
+            })
     },[])
 
     return (
@@ -35,11 +35,14 @@ const Rating = (props) => {
             <InfiniteScroll
                 scrollThreshold={1}
                 dataLength={centers.length}
-                next={()=>fetchRatingCenters(user_city,10,dataOffset+10,({data})=>{
+                next={()=>fetchRatingCenters(user_city,10,dataOffset+10).then(({data})=>{
                     setDataOffset(dataOffset+10)
                     if (data.length) {
                         setCenters([...centers, ...data])
                     } else setHasMore(false)
+                },err=>{
+                    console.log(err)
+                    setHasMore(false)
                 })}
                 hasMore={hasMore}
                 loader={<Spinner style={{paddingTop: 20}}/>}
@@ -54,12 +57,8 @@ const Rating = (props) => {
                         avatar={center.avatar}
                         starSize={20}
                         caption={center.data.info.address}
-                        onClick={()=>{
-                            dispatch(setCenterSaidParams({ center:center }));
-                            dispatch(setActiveView({ panelId:POST_PANEL, viewId:POST_VIEW }))
-                        }}
-                        onClickAvatar={()=>{
-                            dispatch(setCenterSaidParams({ center:center }));
+                        onClickNative={()=>{
+                            dispatch(setContentSaidParams({ center:center }));
                             dispatch(setActiveView({ panelId:POST_PANEL, viewId:POST_VIEW }))
                         }}
                     >{center.data.name}</CenterHeader>)}

@@ -23,22 +23,70 @@ import bridge from '@vkontakte/vk-bridge';
 import EditorView from "../Views/Editor";
 import {CITY_SELECTION_PANEL} from "../constants/Panel";
 
-
 const App = (props) => {
     const { user_info } = props
-    const user_object = user_info.read()
+    const network_user_object = user_info
     const dispatch = useDispatch();
     const {activeView} = useSelector((state) => state.history);
     const colorScheme = useSelector(state=>state.vk.scheme);
     const user_server = useSelector(state=>state.vk.user_server)
+    const isSavedState = useSelector(state=>state.content.isSavedState)
     const [popout, setPopout] = useState(null)
+    let isDesktop = window.location.search.indexOf('desktop_web')!==-1
+
 
     useEffect(() => {
+        bridge.send("VKWebAppInit")
+        const vkEvents = e => {
+            switch(e.detail.type) {
+                case 'VKWebAppCopyTextResult':
+                    if (e.detail.data.result) {
+                        dispatch(setVkSaidParams({snackbar: (
+                                <Snackbar
+                                    duration={2000}
+                                    layout="vertical"
+                                    onClose={() =>dispatch(setVkSaidParams({snackbar: null}))}
+                                    before={<Icon16DoneCircle fill={'var(--accent)'} />}
+                                >Успешно скопировано</Snackbar>
+                            )}))
+                    }
+                    break;
+                case 'VKWebAppUpdateConfig':
+                    // если на сервере есть объект темы - он приоритетнее
+                    if (user_server.theme===null) {
+                        if (e.detail.data.scheme===Scheme.SPACE_GRAY) {
+                            dispatch(setVkSaidParams({scheme:Scheme.SPACE_GRAY}))
+                            changeSchemeOnBridge(false)
+                        } else {
+                            dispatch(setVkSaidParams({scheme:Scheme.BRIGHT_LIGHT}))
+                            changeSchemeOnBridge(true)
+                        }
+                    } else {
+                        if (user_server.theme===1) {
+                            dispatch(setVkSaidParams({scheme:Scheme.SPACE_GRAY}))
+                            changeSchemeOnBridge(false)
+                        } else {
+                            dispatch(setVkSaidParams({scheme:Scheme.BRIGHT_LIGHT}))
+                            changeSchemeOnBridge(true)
+                        }
+                    }
+                    break;
+                default:
+                    console.log(e.detail.type, e.detail.data);
+                    break;
+            }
+        }
+        bridge.subscribe(vkEvents);
+        return () => {
+            bridge.unsubscribe(vkEvents);
+        };
+    }, [user_server]);
+
+    useEffect(() => {
+        dispatch(setVkSaidParams({...network_user_object}))
         history.scrollRestoration = 'manual';
         window.history.scrollRestoration = 'manual';
-        dispatch(setVkSaidParams(user_object))
-        bridge.send('VKWebAppInit')
-        if (!user_object.user_server.isCitySupport) {
+        if (!network_user_object.user_server.isCitySupport) {
             dispatch(setPopoutView(
                 <Alert
                     onClose={()=>dispatch(setPopoutView(null))}
@@ -84,15 +132,7 @@ const App = (props) => {
         // const noScrollOnce = (event) => {
         //     document.removeEventListener('scroll', noScrollOnce);
         // }
-        window.addEventListener('popstate', ()=>{
-            if (window.navigator.onLine) dispatch(setPreviousPanel());
-            document.addEventListener('scroll', (e)=>{
-                e.preventDefault();
-                e.stopPropagation();
-                e.stopImmediatePropagation();
-                window.scrollTo(0,window.history.state.scrollHeight)
-            }, {once:true});
-        })
+
         window.addEventListener('online', online)
         window.addEventListener('offline', offline)
         return ()=>{
@@ -100,52 +140,24 @@ const App = (props) => {
             window.removeEventListener('offline', offline)
         };
     }, []);
-
-    useEffect(() => {
-        const vkEvents = e => {
-            switch(e.detail.type) {
-                case 'VKWebAppCopyTextResult':
-                    if (e.detail.data.result) {
-                        dispatch(setVkSaidParams({snackbar: (
-                                <Snackbar
-                                    duration={2000}
-                                    layout="vertical"
-                                    onClose={() =>dispatch(setVkSaidParams({snackbar: null}))}
-                                    before={<Icon16DoneCircle fill={'var(--accent)'} />}
-                                >Название скопировано</Snackbar>
-                            )}))
-                    }
-                    break;
-                case 'VKWebAppUpdateConfig':
-                    // если на сервере есть объект темы - он приоритетнее
-                    if (user_server.theme===null) {
-                        if (e.detail.data.scheme===Scheme.SPACE_GRAY) {
-                            dispatch(setVkSaidParams({scheme:Scheme.SPACE_GRAY}))
-                            changeSchemeOnBridge(false)
-                        } else {
-                            dispatch(setVkSaidParams({scheme:Scheme.BRIGHT_LIGHT}))
-                            changeSchemeOnBridge(true)
-                        }
-                    } else {
-                        if (user_server.theme===1) {
-                            dispatch(setVkSaidParams({scheme:Scheme.SPACE_GRAY}))
-                            changeSchemeOnBridge(false)
-                        } else {
-                            dispatch(setVkSaidParams({scheme:Scheme.BRIGHT_LIGHT}))
-                            changeSchemeOnBridge(true)
-                        }
-                    }
-                    break;
-                default:
-                    console.log(e.detail.type, e.detail.data);
-                    break;
-            }
+    useEffect(()=>{
+        const popstate = ()=>{
+            if (window.navigator.onLine) dispatch(setPreviousPanel(true));
+            document.addEventListener('scroll', (e)=>{
+                if (!isSavedState) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    e.stopImmediatePropagation();
+                    window.scrollTo(0,window.history.state.scrollHeight)
+                }
+            }, {once:true});
         }
-        bridge.subscribe(vkEvents);
-        return () => {
-            bridge.unsubscribe(vkEvents);
-        };
-    }, [user_server]);
+        window.addEventListener('popstate', popstate)
+        return ()=>{
+            window.removeEventListener('popstate',popstate)
+        }
+    },[isSavedState])
+
     return (
         <ConfigProvider
             // isWebView={true}
@@ -154,12 +166,12 @@ const App = (props) => {
             transitionMotionEnabled={false}
         >
             <Root id='APP' activeView={activeView} popout={popout}>
-                <MainView id={ROOT_VIEW}/>
-                <PostView id={POST_VIEW}/>
+                <MainView id={ROOT_VIEW} isDesktop={isDesktop}/>
+                <PostView id={POST_VIEW} isDesktop={isDesktop}/>
                 <EditorView id={EDITOR_VIEW}/>
             </Root>
         </ConfigProvider>
     );
 };
 
-export default React.memo(App);
+export default App;

@@ -56,7 +56,6 @@ const Center = (props) => {
 
     const onImageInputChange = (e, key)=>{
         const { files } = e.target;
-
         if (files.length){
             if (files[0].size/1024/1000<5) {
                 if (/^image\/(?!gif).*/.test(files[0].type)) {
@@ -166,24 +165,62 @@ const Center = (props) => {
                     info:center.data.info,
                     capabilities: center.data.capabilities
                 }}
-                onSubmit={ (values) => {
-                    let proto = protoString(values.info.site)
-                    if (proto.proto === -1) values.info.site = 'http://'+values.info.site
-                    dispatch(setPopoutView(<ScreenSpinner />))
-                    dispatch(sendCenterChanges(center.id, images.filter(img=>img), values,
-                        (response_text)=>dispatch(setVkSaidParams({
-                        snackbar: (
+                onSubmit={(values)=> {
+                    if (JSON.stringify({
+                        hours:values.hours,
+                        info:values.info,
+                        capabilities: values.capabilities
+                    })===JSON.stringify({
+                        hours:center.data.hours,
+                        info:center.data.info,
+                        capabilities: center.data.capabilities
+                    }) && JSON.stringify(center.image ?
+                        [null,null,null,null,null,null].map((img,key)=>center.image[key] ? center.image[key] : null) :
+                        [null,null,null,null,null,null]) === JSON.stringify(images)) {
+                        dispatch(setSnackBar(
                             <Snackbar
                                 duration={3000}
-                                layout="vertical"
-                                onClose={() => {
-                                    dispatch(setVkSaidParams({snackbar: null, popout: null}))
-                                    dispatch(setActiveView({panelId: FIND_PANEL, viewId: ROOT_VIEW}))
-                                }}
-                                before={<Icon16DoneCircle fill={'var(--accent)'}/>}
-                            >{response_text}</Snackbar>
-                        )
-                    }))))
+                                layout="horizontal"
+                                before={<Icon20CancelCircleFillRed />}
+                                onClose={() =>dispatch(setSnackBar(null))}
+                            >Изменений нет</Snackbar>
+                        ))
+                    } else {
+                        let proto = protoString(values.info.site)
+                        if (proto.proto === -1) values.info.site = 'http://'+values.info.site
+                        dispatch(setPopoutView(<ScreenSpinner />))
+                        //err.response.data
+                        sendCenterChanges(center.id, images.filter(img=>img), values)
+                            .then(({data})=>dispatch(setVkSaidParams({
+                                snackbar: (
+                                    <Snackbar
+                                        duration={2000}
+                                        layout="vertical"
+                                        onClose={() => {
+                                            dispatch(setVkSaidParams({snackbar: null, popout: null}))
+                                            dispatch(handleToPreviousPanel(dispatch))
+                                        }}
+                                        before={<Icon16DoneCircle fill={'var(--accent)'}/>}
+                                    >{data}</Snackbar>
+                                )
+                            })),err=> {
+                                dispatch(setPopoutView(
+                                    <Alert
+                                        onClose={() => dispatch(setPopoutView(null))}
+                                        actionsLayout='vertical'
+                                        actions={[{
+                                            title: 'Ок',
+                                            autoclose: true,
+                                            mode: 'default',
+                                            action: () => dispatch(setPopoutView(null))
+                                        }]}
+                                    >
+                                        <h2>Неудалось отправить запрос</h2>
+                                        <p>{err.response ? err.response.data : err.message==='Network Error' ? 'Сетевая ошибка, повторите попытку' : err.message}</p>
+                                    </Alert>
+                                ))
+                            })
+                    }
                 }}
             >{({ values , setFieldValue:setRootFieldValue}) => (
                 <Form>
@@ -232,7 +269,9 @@ const Center = (props) => {
                                                               name={`info.${index}.1`}
                                                               value={value}
                                                               status={meta.error ? 'error' : ''}
-                                                              onChange={e=>setFieldValue(`info.${index}`,e.target.value)}
+                                                              onChange={e=> {
+                                                                  setFieldValue(`info.${index}`, e.target.value)
+                                                              }}
                                                           />}>
                                                         {fieldObject.text}
                                                     </Cell>
@@ -286,7 +325,9 @@ const Center = (props) => {
                                                                           name={`capabilities[${key_root}]['${keys[0]}'][${index}]`}
                                                                           type="text"
                                                                           value={value}
-                                                                          onChange={e=>setFieldValue(`capabilities[${key_root}]['${keys[0]}'][${index}]`,e.target.value)}
+                                                                          onChange={e=> {
+                                                                              setFieldValue(`capabilities[${key_root}]['${keys[0]}'][${index}]`, e.target.value)
+                                                                          }}
                                                                       />}
                                                                 />
                                                             )}
@@ -297,8 +338,17 @@ const Center = (props) => {
                                                     <Button type={'button'} size={'l'} stretched
                                                             onClick={()=>{
                                                                 let obj = values.capabilities[key_root]
-                                                                obj[keys[0]].push('')
-                                                                replace(key_root, obj)
+                                                                if (obj[keys[0]].length < 10) {
+                                                                    obj[keys[0]].push('')
+                                                                    replace(key_root, obj)
+                                                                } else {
+                                                                    dispatch(setSnackBar(
+                                                                        <Snackbar
+                                                                            layout="vertical"
+                                                                            onClose={()=>dispatch(setSnackBar(null))}
+                                                                            before={<Icon20CancelCircleFillRed />}
+                                                                        >Нельзя добавить больше 10 полей</Snackbar>))
+                                                                }
                                                             }}
                                                     >Добавить поле</Button>
                                                 </Div>
@@ -322,7 +372,9 @@ const Center = (props) => {
                                                         type="text"
                                                         value={value}
                                                         status={meta.error ? 'error' : 'default'}
-                                                        onChange={e=>setFieldValue(`hours.${index}.time`,e.target.value)}
+                                                        onChange={e=> {
+                                                            setFieldValue(`hours.${index}.time`, e.target.value)
+                                                        }}
                                                     />
                                                 }>{hour.day}</Cell>
                                             )}
@@ -335,7 +387,6 @@ const Center = (props) => {
                     <Div style={{display:'flex'}}>
                         <Button stretched type={'submit'} mode={'commerce'} size={'l'}>Закончить</Button>
                     </Div>
-                    <Div style={{paddingTop: 60, paddingBottom: 60}} />
                 </Form>
             )}
             </Formik>

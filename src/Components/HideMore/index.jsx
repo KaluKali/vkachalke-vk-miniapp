@@ -11,6 +11,7 @@ const HideMore = (props) => {
     return (
         <Fragment>
             <SimpleCell
+                style={{cursor: 'pointer'}}
                 before={icon}
                 after={<Icon24Dropdown style={{ transform: `rotate(${showMore ? '180deg' : '0'})` }}/>}
                 onClick={()=>{

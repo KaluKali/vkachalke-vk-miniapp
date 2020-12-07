@@ -19,18 +19,16 @@ export const manageCenters = (centers, event_type) => ({
 //     })
 //         .then(data=>dispatch(manageCenters(data.data, types.APPEND_CENTERS)))
 //         .catch(err=>console.error(err));
-export const fetchCenters = (city, limit=10, offset=0, search='', category='', cb) => {
-    axios.get(`${MAIN_SERVER_URL}/centers`, {params:{
-            city:city,
-            limit:limit,
-            offset:offset,
-            search:search,
-            category:category,
-            vk_start_params:window.location.search
-        }
-    }).then(cb).catch(err=>console.error(err));
-    //({data})=>dispatch(manageCenters({data:data, category:category, filter_search:search}, types.SET_CENTERS))
-};
+export const fetchCenters = (city, limit=10, offset=0, search, categories=[]) =>{
+    return axios.post(`${MAIN_SERVER_URL}/centers`, {
+        city:city,
+        limit:limit,
+        offset:offset,
+        search:search,
+        categories:categories,
+        vk_start_params:window.location.search
+    })
+}
 // export const fetchCenterInformation = (id, cb) => {
 //     axios.get(`${MAIN_SERVER_URL}/centers/oneofcenters`, {params:{
 //             id:id,
@@ -41,22 +39,20 @@ export const fetchCenters = (city, limit=10, offset=0, search='', category='', c
 //         .catch(err=>console.error(err));
 // };
 /** Rating **/
-export const fetchRatingCenters = (city, limit=10, offset=0, cb) =>{
-    axios.get(`${MAIN_SERVER_URL}/centers`, {params:{
+export const fetchRatingCenters = (city, limit=10, offset=0) =>
+    axios.get(`${MAIN_SERVER_URL}/centers/rating`, {params:{
             city:city,
             limit:limit,
             offset:offset,
-            reviews: 0,
             vk_start_params:window.location.search
         }
-    }).then(cb).catch(err=>cb ? cb(null,err) : null);
-}
+    })
 /** Likes **/
 export const fetchLikedCenters = () =>
     axios.get(`${MAIN_SERVER_URL}/users/liked`, {params:{
-        vk_start_params:window.location.search
-    }
-}).catch(err=>console.error(err));
+            vk_start_params:window.location.search
+        }
+    }).catch(err=>console.error(err));
 /** Reviewed **/
 export const fetchReviewedCenters = () =>
     axios.get(`${MAIN_SERVER_URL}/users/reviewed`, {params:{
@@ -76,9 +72,9 @@ export const fetchComments = (center, cb) => dispatch =>
             vk_start_params:window.location.search
         }
     }).then(({data})=>{
-            dispatch(manageCenters(data, types.SET_COMMENTS));
-            if (cb) cb();
-        }).catch(err=>cb ? cb(null,err) : null);
+        dispatch(manageCenters(data, types.SET_COMMENTS));
+        if (cb) cb();
+    }).catch(err=>cb ? cb(null,err) : null);
 export const appendComment = (user, center, comment, images,type=0,stars=0, cb) => dispatch =>
     axios.post(`${MAIN_SERVER_URL}/centers/comment/insert`, {
         id:center.id,
@@ -88,9 +84,9 @@ export const appendComment = (user, center, comment, images,type=0,stars=0, cb) 
         stars:stars,
         vk_start_params:window.location.search,
     }).then(({data})=>{
-            dispatch(manageCenters({user,comment, id:data.id, type, stars,image:data.image, center:{lines:data.lines,medium:data.medium}}, types.APPEND_COMMENT))
-            if (cb) cb(null,data)
-        }).catch(cb);
+        dispatch(manageCenters({user,comment, id:data.id, type, stars,image:data.image, center:{lines:data.lines,medium:data.medium}}, types.APPEND_COMMENT))
+        if (cb) cb(null,data)
+    }).catch(cb);
 export const deleteComment = (comment) => dispatch =>
     axios.post(`${MAIN_SERVER_URL}/centers/comment/delete`,
         {
@@ -99,8 +95,8 @@ export const deleteComment = (comment) => dispatch =>
             type:comment.type,
             vk_start_params: window.location.search
         }).then(({data})=>{
-            dispatch(manageCenters({deleted:comment, stars:data}, types.DELETE_COMMENT))
-        }).catch(err=>console.log(err));
+        dispatch(manageCenters({deleted:comment, stars:data}, types.DELETE_COMMENT))
+    }).catch(err=>console.log(err));
 /** Comments-request for liking centers **/
 export const postLiking = (id) =>
     axios.post(`${MAIN_SERVER_URL}/centers/like`, {
@@ -109,23 +105,23 @@ export const postLiking = (id) =>
     })
         .catch(err=>console.error(err));
 /** For Comments-panel **/
-export const setCenterSaidParams = (params) => ({
+export const setContentSaidParams = (params) => ({
     type: types.SET_SAID_PARAMS,
     payload: params,
 });
 /** Edit center **/
-export const sendCenterChanges = (id, images, changes,cb ) => dispatch =>(
+export const sendCenterChanges = (id, images, changes) =>(
     axios.post(`${MAIN_SERVER_URL}/centers/edit`, {
         id:id,
         image:images,
         changes:changes,
         vk_start_params:window.location.search
-    }).then(({data})=>cb(data)).catch(err=>cb(err.response.data))
+    })
 )
 export const fetchFeed = (cb) => dispatch =>(
     axios.get(`${MAIN_SERVER_URL}/centers/feed`, { params:{vk_start_params:window.location.search}})
         .then(({data})=>{
-            dispatch(setCenterSaidParams({feed:data}))
+            dispatch(setContentSaidParams({feed:data}))
             if (cb) cb();
         }).catch(()=>cb ? cb() : null)
 )

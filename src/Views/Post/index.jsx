@@ -39,10 +39,11 @@ import {POST_VIEW} from "../../constants/View";
 import Icon16DoneCircle from "@vkontakte/icons/dist/16/done_circle";
 import Icon24Done from "@vkontakte/icons/dist/24/done";
 import ImagesLine from "../../Components/ImagesLine";
+import Icon20CancelCircleFillRed from "@vkontakte/icons/dist/20/cancel_circle_fill_red";
 
 
 const PostView = (props) => {
-    const { id } = props;
+    const { id,isDesktop } = props;
     const dispatch = useDispatch();
     const popout = useSelector((state)=>state.vk.popout);
     const user = useSelector((state)=>state.vk.user);
@@ -93,6 +94,30 @@ const PostView = (props) => {
                             }
                         }
                         setImages({content: arr_temp})
+                        // if (arr_temp.some(img=>img===fileReader.result)){
+                        //     dispatch(setPopoutView(
+                        //         <Alert
+                        //             onClose={()=>dispatch(setPopoutView(null))}
+                        //             actionsLayout='vertical'
+                        //             actions={[{
+                        //                 title: 'Ок',
+                        //                 autoclose: true,
+                        //                 mode: 'default',
+                        //                 action: () => dispatch(setPopoutView(null)),
+                        //             }]}
+                        //         >
+                        //             <h2>Одинаковые фото</h2>
+                        //             <p>Фотографии должны быть уникальными</p>
+                        //         </Alert>))
+                        // } else {
+                        //     for (let i=0;arr_temp.length>i;i++) {
+                        //         if (arr_temp[i] === null) {
+                        //             arr_temp[i]=fileReader.result
+                        //             break;
+                        //         }
+                        //     }
+                        //     setImages({content: arr_temp})
+                        // }
                     }
                     fileReader.readAsDataURL(files[0]);
                 } else {
@@ -147,7 +172,7 @@ const PostView = (props) => {
                     </Group>
                     <div style={{display:'flex'}}>
                         {images.content.some((img)=>img===null) ?
-                            <File accept={'image/*'} align={'center'} stretched controlSize="l"
+                            <File accept={'image/*'} align={'center'} stretched controlSize="l" onClick={(event) => {event.target.value = ''}}
                                   onChange={onImageInputChange}>Добавить изображение</File> :
                             <File disabled align={'center'} stretched controlSize="l">Добавить изображение</File>
                         }
@@ -217,11 +242,10 @@ const PostView = (props) => {
                                     } else {dispatch(setVkSaidParams({modal:null,popout:null}))}
                                 }));
                             } else {
-                                setFormError(
-                                    <FormStatus style={{paddingTop:'10px'}} header="Некорректное заполнение формы" mode="error">
-                                        Поставьте оценку и напишите краткий отзыв на данное заведение
-                                    </FormStatus>
-                                )
+                                setFormError(<FormStatus style={{paddingTop:'10px'}} header="Некорректное заполнение формы" mode="error">
+                                    Поставьте оценку и напишите краткий отзыв на данное заведение
+                                </FormStatus>)
+                                setTimeout(()=>setFormError(null), 3000)
                             }
                         }
                     }
@@ -242,11 +266,10 @@ const PostView = (props) => {
                     </Fragment>}
                     value={commentInputValue} onChange={(e)=>{
                     if (e.target.value.length > 300) {
-                        setFormError(
-                            <FormStatus style={{paddingTop:'10px'}} header="Некорректное заполнение формы" mode="error">
+                        setFormError(<FormStatus style={{paddingTop:'10px'}} header="Некорректное заполнение формы" mode="error">
                                 Слишком много текста, пожалуйста, сократите до 300 символов.
-                            </FormStatus>
-                        )
+                            </FormStatus>)
+                        setTimeout(()=>setFormError(null), 3000)
                         setCommentInputValue(e.target.value.substring(0, 299))
                     } else setCommentInputValue(e.target.value)
                 }} placeholder={'Расскажите о заведении'} onFocus={() => formError && setFormError(null)}/>
@@ -260,17 +283,29 @@ const PostView = (props) => {
                         title: 'Отправить',
                         mode: 'commerce',
                         action: ()=>{
-                            if (groupInputRef.current.value) {
+                            if (groupInputRef.current.value && /^(https:\/\/|)vk\.com\/.+/i.test(groupInputRef.current.value)) {
                                 dispatch(setPreviousPanel())
-                                dispatch(sendRequest(1, {vk_group:groupInputRef.current.value}))
-                                dispatch(setVkSaidParams({snackbar: (
-                                        <Snackbar
-                                            duration={2000}
-                                            layout="vertical"
-                                            onClose={() =>dispatch(setVkSaidParams({snackbar: null}))}
-                                            before={<Icon16DoneCircle fill={'var(--accent)'} />}
-                                        >Ваша заявка отправлена</Snackbar>
-                                    )}))
+                                sendRequest(1, {vk_group:groupInputRef.current.value,id:center.id},(data,err)=>{
+                                    if (!err) {
+                                        dispatch(setVkSaidParams({snackbar: (
+                                                <Snackbar
+                                                    duration={2000}
+                                                    layout="vertical"
+                                                    onClose={() =>dispatch(setVkSaidParams({snackbar: null}))}
+                                                    before={<Icon16DoneCircle fill={'var(--accent)'} />}
+                                                >Ваша заявка отправлена</Snackbar>
+                                            )}))
+                                    } else {
+                                        dispatch(setVkSaidParams({snackbar: (
+                                                <Snackbar
+                                                    duration={2000}
+                                                    layout="vertical"
+                                                    onClose={() =>dispatch(setVkSaidParams({snackbar: null}))}
+                                                    before={<Icon20CancelCircleFillRed />}
+                                                >{err.response ? err.response.data : err.message==='Network Error' ? 'Сетевая ошибка, повторите попытку' : err.message}</Snackbar>
+                                            )}))
+                                    }
+                                })
                             } else {
                                 setFormError(
                                     <FormStatus header="Некорректное заполнение формы" mode="error">
@@ -303,7 +338,7 @@ const PostView = (props) => {
             modal={modalPages}
             onSwipeBack={() => dispatch(setPreviousPanel())}
         >
-            <Comment id={POST_PANEL}/>
+            <Comment id={POST_PANEL} isDesktop={isDesktop}/>
             <MapView id={MAPVIEW_PANEL} />
         </View>
     );
