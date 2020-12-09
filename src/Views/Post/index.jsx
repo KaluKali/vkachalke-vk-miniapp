@@ -1,4 +1,4 @@
-import React, {Fragment, useEffect, useRef, useState} from "react";
+import React, {Fragment, useEffect, useState} from "react";
 import {
     Alert,
     Avatar,
@@ -6,7 +6,6 @@ import {
     FormLayout,
     FormStatus,
     Group,
-    Input,
     List,
     ModalCard,
     ModalPage,
@@ -17,7 +16,6 @@ import {
     ScreenSpinner,
     Separator,
     SimpleCell,
-    Snackbar,
     View,
     WriteBar,
     WriteBarIcon
@@ -28,18 +26,17 @@ import {setPreviousPanel} from "../../state/reducers/history/actions";
 import Comment from "../../Panels/Post/Comments";
 import {MAPVIEW_PANEL, POST_PANEL} from "../../constants/Panel";
 import Stars from "../../Components/Stars";
-import {MODAL_CARD_OWNER, MODAL_CARD_REVIEW, MODAL_DETAILS, MODAL_SELECT_IMAGES} from "../../constants/Modal";
-import {sendRequest, setModalView, setPopoutView, setVkSaidParams} from "../../state/reducers/vk/actions";
+import {MODAL_CARD_REVIEW, MODAL_DETAILS, MODAL_SELECT_IMAGES} from "../../constants/Modal";
+import {setModalView, setPopoutView, setVkSaidParams} from "../../state/reducers/vk/actions";
 import {appendComment} from "../../state/reducers/content/actions";
 import MapView from "../../Panels/Post/MapView";
 import Icon24Dismiss from "@vkontakte/icons/dist/24/dismiss";
 import HideMore from "../../Components/HideMore";
 import {capabilitiesIcons} from "../../Components/renderUtils";
 import {POST_VIEW} from "../../constants/View";
-import Icon16DoneCircle from "@vkontakte/icons/dist/16/done_circle";
 import Icon24Done from "@vkontakte/icons/dist/24/done";
 import ImagesLine from "../../Components/ImagesLine";
-import Icon20CancelCircleFillRed from "@vkontakte/icons/dist/20/cancel_circle_fill_red";
+import IOwnerCard from "../../Modals/IOwner";
 
 
 const PostView = (props) => {
@@ -52,7 +49,7 @@ const PostView = (props) => {
     const history = useSelector((state) => state.history.history.filter(h=>h.viewId===POST_VIEW).map(h=>h.panelId));
     const center = useSelector(state=>state.content.center);
     const comment_state = useSelector(state=>state.content.active_post_comments)
-    const groupInputRef = useRef(null);
+    const [formError, setFormError] = useState(null);
     const [commentInputValue, setCommentInputValue] = useState('')
 
     const [stars, setStars] = useState(0);
@@ -75,8 +72,6 @@ const PostView = (props) => {
             setImages({content: [null,null,null,null,null,null]})
         }
     }, [comment_state])
-
-    const [formError, setFormError] = useState(null);
 
     const onImageInputChange = (e)=>{
         const { files } = e.target;
@@ -157,6 +152,7 @@ const PostView = (props) => {
 
     const modalPages = (
         <ModalRoot activeModal={modal} onClose={()=>dispatch(setPreviousPanel())}>
+            <IOwnerCard />
             <ModalPage
                 id={MODAL_SELECT_IMAGES}
                 dynamicContentHeight
@@ -181,7 +177,7 @@ const PostView = (props) => {
             </ModalPage>
             <ModalPage
                 id={MODAL_DETAILS}
-                dynamicContentHeight={true}
+                dynamicContentHeight
                 header={
                     <ModalPageHeader
                         right={<PanelHeaderButton onClick={()=>{dispatch(setPreviousPanel())}
@@ -245,7 +241,6 @@ const PostView = (props) => {
                                 setFormError(<FormStatus style={{paddingTop:'10px'}} header="Некорректное заполнение формы" mode="error">
                                     Поставьте оценку и напишите краткий отзыв на данное заведение
                                 </FormStatus>)
-                                setTimeout(()=>setFormError(null), 3000)
                             }
                         }
                     }
@@ -269,63 +264,11 @@ const PostView = (props) => {
                         setFormError(<FormStatus style={{paddingTop:'10px'}} header="Некорректное заполнение формы" mode="error">
                                 Слишком много текста, пожалуйста, сократите до 300 символов.
                             </FormStatus>)
-                        setTimeout(()=>setFormError(null), 3000)
                         setCommentInputValue(e.target.value.substring(0, 299))
                     } else setCommentInputValue(e.target.value)
                 }} placeholder={'Расскажите о заведении'} onFocus={() => formError && setFormError(null)}/>
             </ModalCard>
-            <ModalCard
-                id={MODAL_CARD_OWNER}
-                header="Подтверждение"
-                onClose={()=>dispatch(setPreviousPanel())}
-                actions={[
-                    {
-                        title: 'Отправить',
-                        mode: 'commerce',
-                        action: ()=>{
-                            if (groupInputRef.current.value && /^(https:\/\/|)vk\.com\/.+/i.test(groupInputRef.current.value)) {
-                                dispatch(setPreviousPanel())
-                                sendRequest(1, {vk_group:groupInputRef.current.value,id:center.id},(data,err)=>{
-                                    if (!err) {
-                                        dispatch(setVkSaidParams({snackbar: (
-                                                <Snackbar
-                                                    duration={2000}
-                                                    layout="vertical"
-                                                    onClose={() =>dispatch(setVkSaidParams({snackbar: null}))}
-                                                    before={<Icon16DoneCircle fill={'var(--accent)'} />}
-                                                >Ваша заявка отправлена</Snackbar>
-                                            )}))
-                                    } else {
-                                        dispatch(setVkSaidParams({snackbar: (
-                                                <Snackbar
-                                                    duration={2000}
-                                                    layout="vertical"
-                                                    onClose={() =>dispatch(setVkSaidParams({snackbar: null}))}
-                                                    before={<Icon20CancelCircleFillRed />}
-                                                >{err.response ? err.response.data : err.message==='Network Error' ? 'Сетевая ошибка, повторите попытку' : err.message}</Snackbar>
-                                            )}))
-                                    }
-                                })
-                            } else {
-                                setFormError(
-                                    <FormStatus header="Некорректное заполнение формы" mode="error">
-                                        Укажите ссылку на группу
-                                    </FormStatus>
-                                )
-                            }
-                        }
-                    }
-                ]}
-            >
-                {formError ? formError : null}
-                <SimpleCell
-                    disabled
-                    multiline
-                    description={<Input type={'url'} getRef={groupInputRef} placeholder={'Ссылка на группу'} onFocus={() => formError && setFormError(null)}/>}
-                >
-                    Для получения статуса владельца заведения вам нужно указать группу сообщества и быть в блоке контактов, чтобы нам было легче опознать вас.
-                </SimpleCell>
-            </ModalCard>
+
         </ModalRoot>
     );
 

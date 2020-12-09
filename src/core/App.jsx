@@ -8,6 +8,7 @@ import {
     PopoutWrapper,
     Root,
     Scheme,
+    ScreenSpinner,
     Snackbar
 } from '@vkontakte/vkui';
 import {useDispatch, useSelector} from 'react-redux';
@@ -16,12 +17,13 @@ import MainView from '../Views/Root';
 import Icon56WifiOutline from '@vkontakte/icons/dist/56/wifi_outline';
 import {EDITOR_VIEW, POST_VIEW, ROOT_VIEW} from '../constants/View';
 import Icon16DoneCircle from '@vkontakte/icons/dist/16/done_circle';
-import {setActivePanel, setPreviousPanel} from '../state/reducers/history/actions';
+import {setActivePanel, setActiveView, setPreviousPanel} from '../state/reducers/history/actions';
 
 import PostView from '../Views/Post';
 import bridge from '@vkontakte/vk-bridge';
 import EditorView from "../Views/Editor";
-import {CITY_SELECTION_PANEL} from "../constants/Panel";
+import {CITY_SELECTION_PANEL, POST_PANEL} from "../constants/Panel";
+import {fetchOneCenter, setContentSaidParams} from "../state/reducers/content/actions";
 
 const App = (props) => {
     const { user_info } = props
@@ -32,7 +34,6 @@ const App = (props) => {
     const isSavedState = useSelector(state=>state.content.isSavedState)
     const [popout, setPopout] = useState(null)
     let isDesktop = window.location.search.indexOf('desktop_web')!==-1
-    bridge.send("VKWebAppInit")
 
 
     useEffect(() => {
@@ -85,26 +86,38 @@ const App = (props) => {
         dispatch(setVkSaidParams(user_info))
         history.scrollRestoration = 'manual';
         window.history.scrollRestoration = 'manual';
-        if (!user_info.user_server.isCitySupport) {
-            dispatch(setPopoutView(
-                <Alert
-                    onClose={()=>dispatch(setPopoutView(null))}
-                    actionsLayout={'horizontal'}
-                    actions={[{
-                        title: 'Нет',
-                        autoclose: true,
-                        mode: 'default',
-                        action: () => dispatch(setPopoutView(null)),
-                    },{
-                        title: 'Да',
-                        autoclose: true,
-                        mode: 'destructive',
-                        action: () => dispatch(setActivePanel(CITY_SELECTION_PANEL)),
-                    }]}
-                >
-                    <h2>Ваш город не поддерживается приложением</h2>
-                    <p>Хотите сменить его?</p>
-                </Alert>))
+        bridge.send("VKWebAppInit")
+        if (window.location.hash && window.location.hash!=='' && window.location.hash.indexOf('#c')===0) {
+            setPopout(<ScreenSpinner/>)
+            let idxCenterParsed = parseInt(window.location.hash.substring(2,window.location.hash.length))
+            if (!isNaN(idxCenterParsed)) fetchOneCenter(idxCenterParsed)
+                .then(({data:{center}})=>{
+                    dispatch(setContentSaidParams({center}))
+                    dispatch(setActiveView({viewId:POST_VIEW, panelId:POST_PANEL}))
+                    setPopout(null)
+                })
+        } else {
+            if (!user_info.user_server.isCitySupport) {
+                dispatch(setPopoutView(
+                    <Alert
+                        onClose={()=>dispatch(setPopoutView(null))}
+                        actionsLayout={'horizontal'}
+                        actions={[{
+                            title: 'Нет',
+                            autoclose: true,
+                            mode: 'default',
+                            action: () => dispatch(setPopoutView(null)),
+                        },{
+                            title: 'Да',
+                            autoclose: true,
+                            mode: 'destructive',
+                            action: () => dispatch(setActivePanel(CITY_SELECTION_PANEL)),
+                        }]}
+                    >
+                        <h2>Ваш город не поддерживается приложением</h2>
+                        <p>Хотите сменить его?</p>
+                    </Alert>))
+            }
         }
         const online = ()=>{
             setPopout(null)

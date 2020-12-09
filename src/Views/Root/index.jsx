@@ -1,20 +1,15 @@
-import React, {useRef, useState} from "react";
+import React, {useState} from "react";
 import {
     Button,
     Checkbox,
     Epic,
     FormLayout,
-    FormStatus,
-    Input,
     List,
-    ModalCard,
     ModalPage,
     ModalPageHeader,
     ModalRoot,
     PanelHeaderButton,
     SelectMimicry,
-    SimpleCell,
-    Snackbar,
     Tabbar,
     TabbarItem,
     View
@@ -36,9 +31,8 @@ import Find from "../../Panels/Root/Find";
 import Icon28UserCircleOutline from "@vkontakte/icons/dist/28/user_circle_outline";
 import Profile from "../../Panels/Root/Profile";
 import Rating from "../../Panels/Root/Rating";
-import {MODAL_CARD_OWNER, MODAL_FILTER, MODAL_FILTER_CATEGORIES} from "../../constants/Modal";
-import {sendRequest, setModalView, setPreviousModal, setVkSaidParams} from "../../state/reducers/vk/actions";
-import Icon16DoneCircle from "@vkontakte/icons/dist/16/done_circle";
+import {MODAL_FILTER, MODAL_FILTER_CATEGORIES} from "../../constants/Modal";
+import {setModalView, setPreviousModal} from "../../state/reducers/vk/actions";
 import Icon24Search from '@vkontakte/icons/dist/24/search';
 import Icon24ServicesOutline from '@vkontakte/icons/dist/24/services_outline';
 import Board from "../../Panels/Root/Board";
@@ -51,18 +45,15 @@ import {categories} from "../../Components/renderUtils";
 import {ROOT_VIEW} from "../../constants/View";
 import Changes from "../../Panels/Root/Profile/Changes";
 import {setContentSaidParams} from "../../state/reducers/content/actions";
-import Icon20CancelCircleFillRed from "@vkontakte/icons/dist/20/cancel_circle_fill_red";
+import IOwnerCard from "../../Modals/IOwner";
 
 const MainView = (props) => {
     const { id, isDesktop } = props;
     const dispatch = useDispatch();
     const activePanel = useSelector((state) => state.history.activePanel);
-    const center = useSelector(state=>state.content.center)
     const history = useSelector((state) => state.history.history.filter(h=>h.viewId===ROOT_VIEW).map(h=>h.panelId));
     const popout = useSelector(state=>state.vk.popout);
     const modal = useSelector((state)=>state.vk.modal);
-    const groupInputRef = useRef(null);
-    const [formError, setFormError] = useState(null);
     const [formChecked, setFormChecked] = useState(useSelector(state=>state.content.categories))
 
     const modalPages = (
@@ -111,58 +102,7 @@ const MainView = (props) => {
                     ))}
                 </FormLayout>
             </ModalPage>
-            <ModalCard
-                id={MODAL_CARD_OWNER}
-                header="Подтверждение"
-                onClose={()=>dispatch(setPreviousModal())}
-                actions={[
-                    {
-                        title: 'Отправить',
-                        mode: 'commerce',
-                        action: ()=>{
-                            if (groupInputRef.current.value && /^(https:\/\/|)vk\.com\/.+/i.test(groupInputRef.current.value)) {
-                                dispatch(setPreviousModal())
-                                sendRequest(1, {vk_group:groupInputRef.current.value,id:center.id},(data,err)=>{
-                                    if (!err) {
-                                        dispatch(setVkSaidParams({snackbar: (
-                                                <Snackbar
-                                                    duration={2000}
-                                                    layout="vertical"
-                                                    onClose={() =>dispatch(setVkSaidParams({snackbar: null}))}
-                                                    before={<Icon16DoneCircle fill={'var(--accent)'} />}
-                                                >Ваша заявка отправлена</Snackbar>
-                                            )}))
-                                    } else {
-                                        dispatch(setVkSaidParams({snackbar: (
-                                                <Snackbar
-                                                    duration={2000}
-                                                    layout="vertical"
-                                                    onClose={() =>dispatch(setVkSaidParams({snackbar: null}))}
-                                                    before={<Icon20CancelCircleFillRed />}
-                                                >{err.response ? err.response.data : err.message==='Network Error' ? 'Сетевая ошибка, повторите попытку' : err.message}</Snackbar>
-                                            )}))
-                                    }
-                                })
-                            } else {
-                                setFormError(
-                                    <FormStatus header="Некорректное заполнение формы" mode="error">
-                                        Укажите ссылку на группу
-                                    </FormStatus>
-                                )
-                            }
-                        }
-                    }
-                ]}
-            >
-                {formError ? formError : null}
-                <SimpleCell
-                    disabled
-                    multiline
-                    description={<Input type={'url'} getRef={groupInputRef} placeholder={'Ссылка на группу'} onFocus={() => formError && setFormError(null)}/>}
-                >
-                    Для получения статуса владельца заведения вам нужно указать группу сообщества и быть в блоке контактов, чтобы нам было легче опознать вас.
-                </SimpleCell>
-            </ModalCard>
+            <IOwnerCard />
         </ModalRoot>
     );
 
@@ -206,7 +146,7 @@ const MainView = (props) => {
                 <Profile id={PROFILE_PANEL} />
                 <Likes id={LIKED_CENTERS_PANEL} />
                 <Reviewed id={REVIEWED_CENTERS_PANEL} />
-                <Board id={BOARD_PANEL} />
+                <Board id={BOARD_PANEL} isDesktop={isDesktop}/>
                 <CitySelection id={CITY_SELECTION_PANEL} />
                 <Changes id={CHANGED_CENTERS_PANEL} />
             </View>

@@ -1,4 +1,4 @@
-import React, {Fragment} from "react";
+import React from "react";
 import Icon20CheckCircleFillGreen from "@vkontakte/icons/dist/20/check_circle_fill_green";
 import {Link, SimpleCell} from "@vkontakte/vkui";
 import Icon24Globe from "@vkontakte/icons/dist/24/globe";
@@ -14,7 +14,6 @@ import {IoFitnessSharp} from 'react-icons/io5'
 import {MdRoomService} from 'react-icons/md'
 import {GiMountains} from 'react-icons/gi'
 import {BsLightning} from 'react-icons/bs'
-import {abstractVkBridgePromise} from "../state/reducers/vk/actions";
 
 export function declension(number, one, two, five) {
     number %= 100;
@@ -58,21 +57,21 @@ export function socialInfoTypes(social, key, center) {
     switch (social) {
         case 'vk':
             return (
-                <Link href={protoStr.proto !==-1 ? center.data.info[social] : `https://${center.data.info[social]}`}
+                <Link key={key} href={protoStr.proto !==-1 ? center.data.info[social] : `https://${center.data.info[social]}`}
                       target={'_blank'} rel='noopener noreferrer'>
-                    <SimpleCell disabled key={key} before={socialIcons(social)}><label style={{color:'var(--accent)'}}>{protoStr.replaced}</label></SimpleCell></Link>
+                    <SimpleCell disabled before={socialIcons(social)}><label style={{color:'var(--accent)'}}>{protoStr.replaced}</label></SimpleCell></Link>
             );
         case 'number':
             return (
-                <Link rel="nofollow" target="_parent" href={`tel:${center.data.info[social].replace(/[^+0-9]/g,'')}`}>
-                    <SimpleCell disabled key={key} before={socialIcons(social)}><label style={{color:'var(--accent)'}}>{center.data.info[social]}</label></SimpleCell>
+                <Link key={key} rel="nofollow" target="_parent" href={`tel:${center.data.info[social].replace(/[^+0-9]/g,'')}`}>
+                    <SimpleCell disabled before={socialIcons(social)}><label style={{color:'var(--accent)'}}>{center.data.info[social]}</label></SimpleCell>
                 </Link>
             );
         case 'site':
             return (
-                <Link href={protoStr.proto !==-1 ? center.data.info[social] : `https://${center.data.info[social]}`}
+                <Link key={key} href={protoStr.proto !==-1 ? center.data.info[social] : `https://${center.data.info[social]}`}
                       target={'_blank'} rel='noopener noreferrer'>
-                    <SimpleCell disabled key={key} before={socialIcons(social)}><label style={{color:'var(--accent)'}}>{protoStr.replaced}</label></SimpleCell></Link>
+                    <SimpleCell disabled before={socialIcons(social)}><label style={{color:'var(--accent)'}}>{protoStr.replaced}</label></SimpleCell></Link>
             );
     }
 }

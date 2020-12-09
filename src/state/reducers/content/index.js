@@ -5,7 +5,6 @@ const initialState = {
   isSavedState:false,
   active_post_comments:{ content:[], commented:-1 },
   item_offset:0,
-  centers:[],
   center:{},
   hasMore:true,
   categories:[],
@@ -19,14 +18,6 @@ const contentReducer = (state = initialState, action) => {
       return {
         ...state,
         ...action.payload
-      };
-    case types.SET_CENTERS:
-      return {
-        ...state,
-        centers: action.payload.data,
-        activeCategory: action.payload.category,
-        filter_search: action.payload.filter_search,
-        hasMore: action.payload.data.length > 0
       };
     case types.APPEND_CENTERS:
       return {

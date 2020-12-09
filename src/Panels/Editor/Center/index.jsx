@@ -25,6 +25,7 @@ import {useDispatch, useSelector} from "react-redux";
 import {setPopoutView, setSnackBar, setVkSaidParams} from "../../../state/reducers/vk/actions";
 import {
     capabilitiesFieldsAllowTypes,
+    capabilitiesIcons,
     fieldType,
     protoString,
     socialAllowTypes,
@@ -34,14 +35,12 @@ import {Field, FieldArray, Form, Formik} from 'formik';
 import Icon24Gallery from '@vkontakte/icons/dist/24/gallery';
 import Icon24DismissOverlay from "@vkontakte/icons/dist/24/dismiss_overlay";
 import {sendCenterChanges} from "../../../state/reducers/content/actions";
-import {setActiveView} from "../../../state/reducers/history/actions";
-import {FIND_PANEL} from "../../../constants/Panel";
-import {ROOT_VIEW} from "../../../constants/View";
 
 import Icon16DoneCircle from "@vkontakte/icons/dist/16/done_circle";
 import NakedImage from "../../../Components/NakedImage";
 import Icon24Add from "@vkontakte/icons/dist/24/add";
 import Icon20CancelCircleFillRed from '@vkontakte/icons/dist/20/cancel_circle_fill_red';
+import NetworkErrorAlert from "../../../Components/NetworkErrorAlert";
 
 const Center = (props) => {
     const { id } = props;
@@ -204,21 +203,7 @@ const Center = (props) => {
                                     >{data}</Snackbar>
                                 )
                             })),err=> {
-                                dispatch(setPopoutView(
-                                    <Alert
-                                        onClose={() => dispatch(setPopoutView(null))}
-                                        actionsLayout='vertical'
-                                        actions={[{
-                                            title: 'Ок',
-                                            autoclose: true,
-                                            mode: 'default',
-                                            action: () => dispatch(setPopoutView(null))
-                                        }]}
-                                    >
-                                        <h2>Неудалось отправить запрос</h2>
-                                        <p>{err.response ? err.response.data : err.message==='Network Error' ? 'Сетевая ошибка, повторите попытку' : err.message}</p>
-                                    </Alert>
-                                ))
+                                dispatch(setPopoutView(<NetworkErrorAlert onClose={()=>dispatch(setPopoutView(null))} err={err} />))
                             })
                     }
                 }}
@@ -291,7 +276,7 @@ const Center = (props) => {
                                     dispatch(setPopoutView(
                                         <ActionSheet onClose={()=>dispatch(setPopoutView(null))}>
                                             {capabilitiesFieldsAllowTypes.filter(type=>!cat_temp.includes(type.text)).map((type, key)=>(
-                                                <ActionSheetItem autoclose key={key} onClick={()=>{
+                                                <ActionSheetItem before={capabilitiesIcons(type.text)} autoclose key={key} onClick={()=>{
                                                     let obj={};
                                                     obj[type.text] = ['']
                                                     push(obj)

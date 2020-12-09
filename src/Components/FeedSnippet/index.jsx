@@ -57,13 +57,13 @@ const FeedSnippet = (props) => {
                         : null}
                     {/** Image block **/}
                     {/** todo Чето сделать с referrer policy **/}
-                    {center.image && <NakedImage url={center.image[0]} size={140} onClick={()=>
+                    {center.image && <NakedImage url={center.image[0]} size={180} contain onClick={()=>
                         isDesktop ?
                             dispatch(setPopoutView(<PhotoViewer images={center.image} />)) :
                             abstractVkBridge('VKWebAppShowImages', {images:center.image})}/>}
                 </List>
                 {/** Action block **/}
-                <PostActionsBottom center={center} centers={centers} data_offset={data_offset} isPost />
+                <PostActionsBottom center={center} centers={centers} data_offset={data_offset} isPost isDesktop={isDesktop} />
             </Card>
         </Div>
     );

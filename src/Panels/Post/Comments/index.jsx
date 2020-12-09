@@ -7,7 +7,6 @@ import {
     Card,
     Div,
     Footer,
-    Gallery,
     Group,
     Header,
     HorizontalScroll,
@@ -57,6 +56,7 @@ import HideMore from "../../../Components/HideMore";
 import PostActionsBottom from "../../../Components/PostActionsBottom";
 import Icon20CancelCircleFillRed from '@vkontakte/icons/dist/20/cancel_circle_fill_red';
 import PhotoViewer from "../../../Components/PhotoViewer";
+import GalleryOnClick from "../../../Components/GalleryOnClick";
 
 
 const Comment = (props) => {
@@ -147,11 +147,15 @@ const Comment = (props) => {
             </Div>
         )
     }
+
+
     return (
         <Panel id={id} className={'noPaddingBottom-Panel'}>
             {center && <Fragment>
                 <PanelHeader left={<PanelHeaderBack onClick={() => handleToPreviousPanel(dispatch)} />}>
                     <PanelHeaderContent
+                        style={{cursor:'pointer'}}
+                        onClick={()=>abstractVkBridge("VKWebAppCopyText", {text:center.data.name})}
                         status={center.data.name}
                     >Отзывы</PanelHeaderContent>
                 </PanelHeader>
@@ -159,16 +163,15 @@ const Comment = (props) => {
                 <PullToRefresh isFetching={fetching} onRefresh={()=>setFetching(true)}>
                     {/** Image block **/}
                     {center.image ?
-                        <Gallery
+                        <GalleryOnClick
                             slideWidth="90%"
                             style={{ height: '180px' }}
                             align='center'
                             bullets={scheme === 'space_gray' ? 'light' : 'dark'}
-                        >
-                            { center.image.map((img_url,key)=><NakedImage onClick={()=>{
-                                !isDesktop && abstractVkBridge('VKWebAppShowImages', {images:[img_url,...center.image.filter((_,k)=>k!==key)]})
-                            }} key={key} url={img_url} />) }
-                        </Gallery>
+                            onPhotoClick={(currImage)=>
+                                !isDesktop ? abstractVkBridge('VKWebAppShowImages', {images:[center.image[currImage],...center.image.filter((_,k)=>k!==currImage)]})
+                                    : dispatch(setPopoutView(<PhotoViewer images={[center.image[currImage],...center.image.filter((_,k)=>k!==currImage)]} />))}
+                        >{center.image.map((img_url,key)=><NakedImage key={key} url={img_url}/>)}</GalleryOnClick>
                         : <Placeholder
                             icon={<Icon56CameraOffOutline />}
                             header="Изображения отсутствуют"
@@ -201,7 +204,7 @@ const Comment = (props) => {
                             <SimpleCell before={<Icon24List fill={'var(--text_link'}/>}
                                   onClick={()=>dispatch(setModalView(MODAL_DETAILS))}
                             >Подробнее</SimpleCell> : null}
-                        <PostActionsBottom center={center} />
+                        <PostActionsBottom center={center} isDesktop={isDesktop} />
                     </Group>
                     {/** Оценки пользователей **/}
                     <Group separator={'auto'} header={<Header>Оценки пользователей</Header>}>

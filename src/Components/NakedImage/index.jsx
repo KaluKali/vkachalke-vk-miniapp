@@ -11,16 +11,16 @@ const NakedImage = (props) => {
         ...style
     }
     if (size) styles.height=typeof size === 'number' ? `${size}px` : size
+    if (onClick) styles.cursor='pointer'
     return (
-        <div
-            onClick={onClick}
-            style={styles}>{children}</div>
+        <div onClick={onClick} style={styles}>{children}</div>
     );
 };
 
 NakedImage.propTypes = {
     url: PropTypes.string.isRequired,
-    style: PropTypes.object
+    style: PropTypes.object,
+    contain: PropTypes.bool
 };
 
 export default NakedImage;

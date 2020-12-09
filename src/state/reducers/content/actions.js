@@ -29,15 +29,12 @@ export const fetchCenters = (city, limit=10, offset=0, search, categories=[]) =>
         vk_start_params:window.location.search
     })
 }
-// export const fetchCenterInformation = (id, cb) => {
-//     axios.get(`${MAIN_SERVER_URL}/centers/oneofcenters`, {params:{
-//             id:id,
-//             vk_start_params:window.location.search
-//         }
-//     })
-//         .then(cb)
-//         .catch(err=>console.error(err));
-// };
+export const fetchOneCenter = (id) =>
+    axios.get(`${MAIN_SERVER_URL}/centers/oneofcenters`, {params:{
+            id:id,
+            vk_start_params:window.location.search
+        }
+    })
 /** Rating **/
 export const fetchRatingCenters = (city, limit=10, offset=0) =>
     axios.get(`${MAIN_SERVER_URL}/centers/rating`, {params:{
@@ -118,10 +115,5 @@ export const sendCenterChanges = (id, images, changes) =>(
         vk_start_params:window.location.search
     })
 )
-export const fetchFeed = (cb) => dispatch =>(
+export const fetchFeed = () =>
     axios.get(`${MAIN_SERVER_URL}/centers/feed`, { params:{vk_start_params:window.location.search}})
-        .then(({data})=>{
-            dispatch(setContentSaidParams({feed:data}))
-            if (cb) cb();
-        }).catch(()=>cb ? cb() : null)
-)

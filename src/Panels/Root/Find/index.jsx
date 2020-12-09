@@ -7,8 +7,9 @@ import {fetchCenters, setContentSaidParams} from "../../../state/reducers/conten
 import InfiniteScroll from "react-infinite-scroll-component";
 import debounce from "../../../Components/debounce";
 import Icon24Filter from "@vkontakte/icons/dist/24/filter";
-import {abstractVkBridgePromise, setModalView} from "../../../state/reducers/vk/actions";
+import {abstractVkBridgePromise, setModalView, setPopoutView} from "../../../state/reducers/vk/actions";
 import {MODAL_FILTER} from "../../../constants/Modal";
+import NetworkErrorAlert from "../../../Components/NetworkErrorAlert";
 
 
 const Find = (props) => {
@@ -28,9 +29,9 @@ const Find = (props) => {
 
     useEffect(()=>{
         if (isSavedState) {
+            dispatch(setContentSaidParams({isSavedState:false}))
             setCenters(JSON.parse(localStorage.getItem('centers')))
             setDataOffset(parseInt(localStorage.getItem('data_offset')))
-            dispatch(setContentSaidParams({isSavedState:false}))
             setFetching(false)
             window.scrollTo(0,parseInt(localStorage.getItem('sroll-prev-find')))
         } else {
@@ -39,13 +40,12 @@ const Find = (props) => {
                 .then(({data})=>{
                     setCenters(data)
                     setFetching(false)
-                    if (!data.length){
-                        setHasMore(false)
-                    }
+                    !data.length && setHasMore(false)
                 },(err)=>{
                     console.log(err)
                     setFetching(false)
                     setHasMore(false)
+                    dispatch(setPopoutView(<NetworkErrorAlert onClose={()=>dispatch(setPopoutView(null))} err={err} />))
                 })
         }
     }, [user_city,filterSearch,categories])
