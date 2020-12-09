@@ -5,7 +5,7 @@ import {handleToPreviousPanel} from "../../../src/core/HistoryDispatcher";
 import {useDispatch} from "react-redux";
 
 const Example = (props) => {
-    const { id } = props;
+    const { id } = props; 
     const dispatch = useDispatch();
 
     return (
